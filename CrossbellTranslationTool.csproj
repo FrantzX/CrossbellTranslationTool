@@ -82,6 +82,7 @@
     <Compile Include="LinqUtil.cs" />
     <Compile Include="MathUtil.cs" />
     <Compile Include="Program.cs" />
+    <Compile Include="AssemblyInfo.cs" />
     <Compile Include="ScenarioFile.cs" />
     <Compile Include="ScenarioFileList.cs" />
     <Compile Include="StreamPositionSaver.cs" />
