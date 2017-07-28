@@ -1,0 +1,44 @@
+﻿using System;
+
+namespace CrossbellTranslationTool.Bytecode
+{
+	enum OperationType : byte
+	{
+		PUSH_LONG = 0x00,
+		END = 0x01,
+		EQU = 0x02,
+		NEQ = 0x03,
+		LSS = 0x04,
+		GTR = 0x05,
+		LEQ = 0x06,
+		GE = 0x07,
+		EQUZ = 0x08,
+		NEQUZ_I64 = 0x09,
+		AND = 0x0A,
+		OR = 0x0B,
+		ADD = 0x0C,
+		SUB = 0x0D,
+		NEG = 0x0E,
+		XOR = 0x0F,
+		IMUL = 0x10,
+		IDIV = 0x11,
+		IMOD = 0x12,
+		STUB = 0x13,
+		IMUL_SAVE = 0x14,
+		IDIV_SAVE = 0x15,
+		IMOD_SAVE = 0x16,
+		ADD_SAVE = 0x17,
+		SUB_SAVE = 0x18,
+		AND_SAVE = 0x19,
+		XOR_SAVE = 0x1A,
+		OR_SAVE = 0x1B,
+		EXEC_OP = 0x1C,
+		NOT = 0x1D,
+		TEST_SCENA_FLAGS = 0x1E,
+		GET_RESULT = 0x1F,
+		PUSH_VALUE_INDEX = 0x20,
+		GET_CHR_WORK = 0x21,
+		RAND = 0x22,
+		UNKNOWN_23 = 0x23
+	}
+}

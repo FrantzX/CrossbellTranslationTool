@@ -1,0 +1,108 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{C597680E-DBF9-45AE-BDE2-8405AAF0731F}</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>CrossbellTranslationTool</RootNamespace>
+    <AssemblyName>CrossbellTranslationTool</AssemblyName>
+    <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject>CrossbellTranslationTool.Program</StartupObject>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="App.config" />
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Assert.cs" />
+    <Compile Include="BinaryIO.cs" />
+    <Compile Include="BinaryPatch.cs" />
+    <Compile Include="BinaryPatchType.cs" />
+    <Compile Include="BuildAction.cs" />
+    <Compile Include="Bytecode.Disassembler.cs" />
+    <Compile Include="Bytecode.DisassemblyState.cs" />
+    <Compile Include="Bytecode.Expression.cs" />
+    <Compile Include="Bytecode.Instruction.cs" />
+    <Compile Include="Bytecode.InstructionDefinition.cs" />
+    <Compile Include="Bytecode.InstructionFlags.cs" />
+    <Compile Include="Bytecode.InstructionTable_AoKScena.cs" />
+    <Compile Include="Bytecode.Operand.cs" />
+    <Compile Include="Bytecode.OperandType.cs" />
+    <Compile Include="Bytecode.Operation.cs" />
+    <Compile Include="Bytecode.OperationType.cs" />
+    <Compile Include="CommandLine.BuildArgs.cs" />
+    <Compile Include="CommandLine.ExtractArgs.cs" />
+    <Compile Include="EncodedStringJsonConverter.cs" />
+    <Compile Include="Encodings.cs" />
+    <Compile Include="Endian.cs" />
+    <Compile Include="ExtractionAction.cs" />
+    <Compile Include="FileHeaders.cs" />
+    <Compile Include="FileReader.cs" />
+    <Compile Include="HashCode.cs" />
+    <Compile Include="Interop.cs" />
+    <Compile Include="Iso9660.BasicVolumeDescriptor.cs" />
+    <Compile Include="Iso9660.DirectoryRecord.cs" />
+    <Compile Include="Iso9660.DirectoryRecordFlags.cs" />
+    <Compile Include="Iso9660.DirectoryRecordSector.cs" />
+    <Compile Include="Iso9660.FileSector.cs" />
+    <Compile Include="Iso9660.IsoImage.cs" />
+    <Compile Include="Iso9660.PathTable.cs" />
+    <Compile Include="Iso9660.PathTableItem.cs" />
+    <Compile Include="Iso9660.SectorObject.cs" />
+    <Compile Include="Iso9660.SetTerminatorVolumeDescriptor.cs" />
+    <Compile Include="Iso9660.VolumeDescriptor.cs" />
+    <Compile Include="Iso9660.VolumeDescriptorType.cs" />
+    <Compile Include="IsoFilePaths.cs" />
+    <Compile Include="JsonTextItemFileIO.cs" />
+    <Compile Include="LinqUtil.cs" />
+    <Compile Include="MathUtil.cs" />
+    <Compile Include="Program.cs" />
+    <Compile Include="ScenarioFile.cs" />
+    <Compile Include="ScenarioFileList.cs" />
+    <Compile Include="StreamPositionSaver.cs" />
+    <Compile Include="StringCode.cs" />
+    <Compile Include="EncodedStringUtil.cs" />
+    <Compile Include="Text.FilePointer.cs" />
+    <Compile Include="Text.FilePointerDelegate.cs" />
+    <Compile Include="Text.FilePointerReading.cs" />
+    <Compile Include="Text.FilePointerSize.cs" />
+    <Compile Include="Text.TextFileDescription.cs" />
+    <Compile Include="Text.TextFileIO.cs" />
+    <Compile Include="TextItem.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="CommandLine, Version=2.0.275.0, Culture=neutral, PublicKeyToken=de6f01bd326f8c32, processorArchitecture=MSIL">
+      <HintPath>packages\CommandLineParser.2.0.275-beta\lib\net45\CommandLine.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json, Version=10.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>packages\Newtonsoft.Json.10.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>
