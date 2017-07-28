@@ -50,8 +50,8 @@ Open a command prompt and go to directory where you extracted the files. Run the
 + Crossbell Translation Tool v1: https://github.com/FrantzX/CrossbellTranslationTool/releases/download/v1.0.0/CrossbellTranslationTool.zip
 + Partially Translated Output Files v3: https://github.com/FrantzX/CrossbellTranslationTool/releases/download/v1.0.0/Ao.no.Kiseki.Translation.v3.zip
 
-Already Translated in the Partially Translated Output Files
---- 
+## Already Translated in the Partially Translated Output Files
++ The ENTIRE prologue!
 + Items
 + Equipment
 + Fish
@@ -61,3 +61,6 @@ Already Translated in the Partially Translated Output Files
 + Crafts
 + SOME NPC Names
 + Character Names
++ Treasure Chests
++ Orbment Recharging Stations
++ Random Item Drops in the Field
