@@ -47,7 +47,8 @@ Open a command prompt and go to directory where you extracted the files. Run the
  Again, don't forget "" around the paths
 
 ## Download Links
-+ Partially Translated Output Files v2: https://drive.google.com/open?id=0Bx3TtT4Ryc4CeFYyLVk0YS1FejQ
++ Crossbell Translation Tool v1: https://github.com/FrantzX/CrossbellTranslationTool/releases/download/v1.0.0/Ao.no.Kiseki.Translation.v3.zip
++ Partially Translated Output Files v3: https://github.com/FrantzX/CrossbellTranslationTool/releases/download/v1.0.0/Ao.no.Kiseki.Translation.v3.zip
 
 Already Translated in the Partially Translated Output Files
 --- 
