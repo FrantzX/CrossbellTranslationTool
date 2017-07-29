@@ -43,7 +43,6 @@ namespace CrossbellTranslationTool
 		{
 			var offsetchanges = CorrectOffsets();
 			var offsetfixer = CreateOffsetReplacer(offsetchanges);
-			var offsetwalker = CreateOffsetWalker(offsetchanges);
 
 			FileMap[0] = UpdateHeader((FileHeaders.SCENARIO_HEADER)FileMap[0], offsetfixer);
 
@@ -51,8 +50,8 @@ namespace CrossbellTranslationTool
 
 			UpdateBattle(FileMap, offsetfixer);
 
-			VisitOperands(x => x.Type == Bytecode.OperandType.InstructionOffset, offsetwalker);
-			VisitOperands(x => x.Type == Bytecode.OperandType.BattleOffset, offsetwalker);
+			VisitOperands(x => x.Type == Bytecode.OperandType.InstructionOffset, CreateOffsetWalker(offsetchanges, Bytecode.OperandType.InstructionOffset));
+			VisitOperands(x => x.Type == Bytecode.OperandType.BattleOffset, CreateOffsetWalker(offsetchanges, Bytecode.OperandType.BattleOffset));
 		}
 
 		public Stream WriteToStream()
@@ -283,7 +282,6 @@ namespace CrossbellTranslationTool
 
 			return (Int32)count;
 		}
-
 
 		HashSet<UInt32> FindBattleOffsets()
 		{
@@ -537,15 +535,16 @@ namespace CrossbellTranslationTool
 			};
 		}
 
-		static Func<Bytecode.Operand, Bytecode.Operand> CreateOffsetWalker(IDictionary<UInt32, UInt32> fixmap)
+		static Func<Bytecode.Operand, Bytecode.Operand> CreateOffsetWalker(IDictionary<UInt32, UInt32> fixmap, Bytecode.OperandType operandtype)
 		{
 			Assert.IsNotNull(fixmap, nameof(fixmap));
+			Assert.IsValidEnumeration(operandtype, nameof(operandtype), true);
 
 			return operand =>
 			{
 				if (fixmap.TryGetValue(operand.GetValue<UInt32>(), out UInt32 newoffset) == true)
 				{
-					return new Bytecode.Operand(Bytecode.OperandType.InstructionOffset, newoffset);
+					return new Bytecode.Operand(operandtype, newoffset);
 				}
 				else
 				{

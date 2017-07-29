@@ -245,4 +245,118 @@ namespace CrossbellTranslationTool.FileHeaders
 		[MarshalAs(UnmanagedType.ByValArray, ArraySubType = UnmanagedType.U1, SizeConst = 7)]
 		public Byte[] Values;
 	}
+
+	[StructLayout(LayoutKind.Sequential, Pack = 1)]
+	struct MONSTER_HEADER
+	{
+		public UInt32 ASFile;
+		public UInt16 Level;
+		public UInt32 MaximumHP;
+		public UInt32 InitialHP;
+		public UInt16 MaximumEP;
+		public UInt16 InitialEP;
+		public UInt16 MaximumCP;
+		public UInt16 InitialCP;
+
+		public UInt16 SPD;
+		public UInt16 MoveSPD;
+		public UInt16 MOV;
+		public UInt16 STR;
+		public UInt16 DEF;
+		public UInt16 ATS;
+		public UInt16 ADF;
+		public UInt16 DEX;
+		public UInt16 AGL;
+		public UInt16 RNG;
+
+		public UInt16 Unknown_2A;
+		public UInt16 EXP;
+		public UInt16 Unknown_2E;
+		public Byte Unknown_30;
+		public UInt16 AIType;
+		public UInt16 Unknown_33;
+		public Byte Unknown_35;
+		public UInt16 Unknown_36;
+		public UInt16 EnemyFlags;
+		public UInt16 BattleFlags;
+		public UInt16 Unknown_3C;
+		public UInt16 Unknown_3E;
+		public Byte Sex;
+		public Byte Unknown_41;
+		public UInt32 CharSize;
+		public UInt32 DefaultEffectX;
+		public UInt32 DefaultEffectZ;
+		public UInt32 DefaultEffectY;
+		public Byte Unknown_52;
+		public Byte Unknown_53;
+		public Byte Unknown_54;
+		public Byte Unknown_55;
+
+		public UInt32 Symbol;
+		public UInt32 Resistance;
+
+		[MarshalAs(UnmanagedType.ByValArray, ArraySubType = UnmanagedType.U2, SizeConst = 7)]
+		public UInt16[] AttributeRate;
+
+		[MarshalAs(UnmanagedType.ByValArray, ArraySubType = UnmanagedType.U1, SizeConst = 7)]
+		public Byte[] Sepith;
+
+		[MarshalAs(UnmanagedType.ByValArray, ArraySubType = UnmanagedType.U2, SizeConst = 2)]
+		public UInt16[] DropItem;
+
+		[MarshalAs(UnmanagedType.ByValArray, ArraySubType = UnmanagedType.U1, SizeConst = 2)]
+		public Byte[] DropRate;
+
+		[MarshalAs(UnmanagedType.ByValArray, ArraySubType = UnmanagedType.U2, SizeConst = 5)]
+		public UInt16[] Equipment;
+
+		[MarshalAs(UnmanagedType.ByValArray, ArraySubType = UnmanagedType.U2, SizeConst = 4)]
+		public UInt16[] Orbment;
+	}
+
+	[StructLayout(LayoutKind.Sequential, Pack = 1)]
+	struct MONSTER_CRAFTAIINFO
+	{
+		public Byte Condition;
+		public Byte Probability;
+		public Byte Target;
+		public Byte TargetCondition;
+		public Byte AriaActionIndex;
+		public Byte ActionIndex;
+		public UInt16 CraftIndex;
+
+		[MarshalAs(UnmanagedType.ByValArray, ArraySubType = UnmanagedType.U1, SizeConst = 4)]
+		public UInt32[] Parameter;
+	}
+
+	[StructLayout(LayoutKind.Sequential, Pack = 1)]
+	struct MONSTER_CRAFTINFO
+	{
+		public UInt16 ActionIndex;
+		public Byte Target;
+		public Byte Unknown_3;
+		public Byte Attribute;
+		public Byte RangeType;
+		public Byte State1;
+		public Byte State2;
+		public Byte RNG;
+		public Byte RangeSize;
+		public Byte AriaTime;
+		public Byte SkillTime;
+		public UInt16 EP_CP;
+		public UInt16 RangeSize2;
+		public UInt16 State1Parameter;
+		public UInt16 State1Time;
+		public UInt16 State2Parameter;
+		public UInt16 State2Time;
+	}
+
+	[StructLayout(LayoutKind.Sequential, Pack = 1)]
+	struct MONSTER_RUNAWAY
+	{
+		public Byte Type;
+		public Byte Rate;
+		public Byte Parameter;
+
+	}
 }

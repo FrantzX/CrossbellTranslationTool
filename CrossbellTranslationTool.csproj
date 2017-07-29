@@ -81,6 +81,7 @@
     <Compile Include="JsonTextItemFileIO.cs" />
     <Compile Include="LinqUtil.cs" />
     <Compile Include="MathUtil.cs" />
+    <Compile Include="MonsterDefinitionFile.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="AssemblyInfo.cs" />
     <Compile Include="ScenarioFile.cs" />

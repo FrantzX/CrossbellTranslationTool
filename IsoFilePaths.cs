@@ -10,8 +10,14 @@ namespace CrossbellTranslationTool
 
 		public static String DirectoryPath_Scenario { get; } = @"PSP_GAME\USRDIR\data\scena";
 
+		public static String DirectoryPath_BattleData { get; } = @"PSP_GAME\USRDIR\data\battle\dat";
+
 		public static String FilePath_datalst { get; } = @"PSP_GAME\USRDIR\data.lst";
 
 		public static String FilePath_sysstartbbc { get; } = @"PSP_GAME\USRDIR\data\cclm\system\sysstart.bcc";
+
+		public static String FilePath_btasm1bbc { get; } = @"PSP_GAME\USRDIR\data\cclm\battle1\btasm1.bcc";
+
+		public static String FilePath_sysonmembbc { get; } = @"PSP_GAME\USRDIR\data\cclm\system\sysonmem.bcc";
 	}
 }

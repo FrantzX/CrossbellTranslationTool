@@ -119,6 +119,7 @@ namespace CrossbellTranslationTool
 			while (true)
 			{
 				var bytesread = Stream.Read(Buffer, 0, Buffer.Length);
+				if (bytesread == 0) throw new Exception();
 
 				for (var i = 0; i < bytesread; ++i)
 				{

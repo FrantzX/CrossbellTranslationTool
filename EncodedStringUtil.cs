@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -179,6 +180,15 @@ namespace CrossbellTranslationTool
 			}
 
 			return buffer;
+		}
+
+		public static void WriteStringToStream(Stream stream, String value)
+		{
+			Assert.IsNotNull(stream, nameof(stream));
+			Assert.IsNotNull(value, nameof(value));
+
+			var bytes = GetBytes(value);
+			stream.Write(bytes, 0, bytes.Length);
 		}
 	}
 }

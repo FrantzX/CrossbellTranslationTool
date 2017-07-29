@@ -17,7 +17,29 @@ namespace CrossbellTranslationTool
 			gchandle.Free();
 		}
 
+		public static void FillBufferWithStruct<T>(T obj, Byte[] buffer, Int32 offset) where T : struct
+		{
+			Assert.IsNotNull(buffer, nameof(buffer));
+
+			var gchandle = GCHandle.Alloc(buffer, GCHandleType.Pinned);
+
+			Marshal.StructureToPtr(obj, gchandle.AddrOfPinnedObject() + offset, false);
+
+			gchandle.Free();
+		}
+
 		public static Byte[] GetBytesOfStruct<T>(ref T obj) where T : struct
+		{
+			var size = Marshal.SizeOf<T>();
+
+			var buffer = new Byte[size];
+
+			FillBufferWithStruct(ref obj, buffer, 0);
+
+			return buffer;
+		}
+
+		public static Byte[] GetBytesOfStruct<T>(T obj) where T : struct
 		{
 			var size = Marshal.SizeOf<T>();
 
@@ -53,6 +75,20 @@ namespace CrossbellTranslationTool
 			while (bytesread < size) bytesread += stream.Read(buffer, bytesread, size - bytesread);
 
 			return CreateStructFromBuffer<T>(buffer, 0);
+		}
+
+		public static void WriteStructToStream<T>(Stream stream, ref T obj) where T : struct
+		{
+			var buffer = GetBytesOfStruct(ref obj);
+
+			stream.Write(buffer, 0, buffer.Length);
+		}
+
+		public static void WriteStructToStream<T>(Stream stream, T obj) where T : struct
+		{
+			var buffer = GetBytesOfStruct(ref obj);
+
+			stream.Write(buffer, 0, buffer.Length);
 		}
 
 		public static IntPtr CopyStructToUnmanagedMemory<T>(ref T obj) where T : struct

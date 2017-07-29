@@ -24,7 +24,7 @@ namespace CrossbellTranslationTool
 			{
 				if (File.Exists(Path.Combine(args.DataPath, "EBOOT.BIN")) == true)
 				{
-					Console.WriteLine(@"PSP_GAME\SYSDIR\EBOOT.BIN");
+					Console.WriteLine(@"EBOOT.BIN");
 
 					var patches = BuildEbootPatches();
 					var file = iso.GetFile(@"PSP_GAME\SYSDIR\EBOOT.BIN");
@@ -59,25 +59,41 @@ namespace CrossbellTranslationTool
 
 				foreach (var item in data_text)
 				{
-					Console.WriteLine(item.FileName);
-
 					var textfilepath = Path.Combine(IsoFilePaths.DirectoryPath_Text, item.FileName);
 					var jsonfilepath = Path.ChangeExtension(Path.Combine(args.DataPath, "text", item.FileName), ".json");
 
-					UpdateTextFile(iso, textfilepath, item.FilePointerDelegate, jsonfilepath);
+					if (File.Exists(jsonfilepath) == true)
+					{
+						Console.WriteLine(item.FileName);
+						UpdateTextFile(iso, textfilepath, item.FilePointerDelegate, jsonfilepath);
+					}
 				}
 
 				foreach (var item in data_scenario)
 				{
-					Console.WriteLine(item);
-
 					var scenariofilepath = Path.Combine(IsoFilePaths.DirectoryPath_Scenario, item);
 					var jsonfilepath = Path.ChangeExtension(Path.Combine(args.DataPath, "scena", item), ".json");
 
-					UpdateScenarioFile(iso, scenariofilepath, jsonfilepath, stringtableitems);
+					if (File.Exists(jsonfilepath) == true)
+					{
+						Console.WriteLine(item);
+						UpdateScenarioFile(iso, scenariofilepath, jsonfilepath, stringtableitems);
+					}
 				}
 
 				CleanAllMC1Files(iso);
+
+				foreach (var item in iso.GetChildren(IsoFilePaths.DirectoryPath_BattleData).Where(x => x.FileIdentifier.StartsWith("ms") == true))
+				{
+					var filepath = Path.Combine(IsoFilePaths.DirectoryPath_BattleData, item.FileIdentifier);
+					var jsonfilepath = Path.ChangeExtension(Path.Combine(args.DataPath, "monster", item.FileIdentifier), ".json");
+
+					if (File.Exists(jsonfilepath) == true)
+					{
+						Console.WriteLine(item.FileIdentifier);
+						UpdateMonsterFile(iso, filepath, jsonfilepath);
+					}
+				}
 
 				iso.GetPrimaryVolumeDescriptor().VolumeSpaceSize = iso.GetHighestSectorUsed() + 1;
 
@@ -103,6 +119,29 @@ namespace CrossbellTranslationTool
 			return list;
 		}
 
+		static void UpdateMonsterFile(Iso9660.IsoImage iso, String filepath, String jsonpath)
+		{
+			Assert.IsNotNull(iso, nameof(iso));
+			Assert.IsValidString(filepath, nameof(filepath));
+			Assert.IsValidString(jsonpath, nameof(jsonpath));
+
+			var file = iso.GetFile(filepath);
+			var reader = new FileReader(file.GetData());
+			var monsterfile = new MonsterDefinitionFile(reader);
+
+			var json = JsonTextItemFileIO.ReadFromFile(jsonpath);
+			var strings = json.Select(x => x.GetBestText()).ToList();
+
+			monsterfile.SetStrings(strings);
+
+#warning Hack.
+			var buffer = (monsterfile.SaveToStream() as MemoryStream).ToArray();
+
+			UpdateFileData(iso, file, buffer);
+
+			ClearFileReference(iso, IsoFilePaths.FilePath_btasm1bbc, Path.GetFileName(filepath));
+		}
+
 		static void UpdateTextFile(Iso9660.IsoImage iso, String filepath, Text.FilePointerDelegate filepointerfunc, String jsonpath)
 		{
 			Assert.IsNotNull(iso, nameof(iso));
@@ -113,6 +152,7 @@ namespace CrossbellTranslationTool
 			WriteTextFile(iso, filepath, filepointerfunc, jsonpath);
 			Update_datalst(iso, filepath);
 			ClearFileReference(iso, IsoFilePaths.FilePath_sysstartbbc, Path.GetFileName(filepath));
+			ClearFileReference(iso, IsoFilePaths.FilePath_sysonmembbc, Path.GetFileName(filepath));
 		}
 
 		static void UpdateScenarioFile(Iso9660.IsoImage iso, String scenariofilepath, String jsonpath, List<TextItem> stringtableitems)
@@ -142,6 +182,7 @@ namespace CrossbellTranslationTool
 
 			scenariofile.Fix();
 
+#warning Hack.
 			var buffer = (scenariofile.WriteToStream() as MemoryStream).ToArray();
 
 			UpdateFileData(iso, file, buffer);

@@ -26,6 +26,7 @@ namespace CrossbellTranslationTool
 				Directory.CreateDirectory(args.DataPath);
 				Directory.CreateDirectory(Path.Combine(args.DataPath, "text"));
 				Directory.CreateDirectory(Path.Combine(args.DataPath, "scena"));
+				Directory.CreateDirectory(Path.Combine(args.DataPath, "monster"));
 
 				foreach (var item in data_text)
 				{
@@ -53,6 +54,17 @@ namespace CrossbellTranslationTool
 				}
 
 				JsonTextItemFileIO.WriteToFile(totalscenastringtable.Select(x => new TextItem(x)).ToList(), Path.Combine(args.DataPath, "stringtable.json"));
+
+				foreach (var item in iso.GetChildren(IsoFilePaths.DirectoryPath_BattleData).Where(x => x.FileIdentifier.StartsWith("ms") == true))
+				{
+					Console.WriteLine(item.FileIdentifier);
+
+					var filepath = Path.Combine(IsoFilePaths.DirectoryPath_BattleData, item.FileIdentifier);
+					var jsonfilepath = Path.ChangeExtension(Path.Combine(args.DataPath, "monster", item.FileIdentifier), ".json");
+
+					var strings = ReadMonsterFile(iso, filepath);
+					JsonTextItemFileIO.WriteToFile(strings.Select(x => new TextItem(x)).ToList(), jsonfilepath);
+				}
 			}
 
 			Console.WriteLine();
@@ -91,6 +103,18 @@ namespace CrossbellTranslationTool
 				var strings = Text.TextFileIO.Read(reader, filepointerfunc);
 				return strings;
 			}
+		}
+
+		static List<String> ReadMonsterFile(Iso9660.IsoImage iso, String filepath)
+		{
+			Assert.IsNotNull(iso, nameof(iso));
+			Assert.IsValidString(filepath, nameof(filepath));
+
+			var file = iso.GetFile(filepath);
+			var reader = new FileReader(file.GetData());
+			var monsterfile = new MonsterDefinitionFile(reader);
+
+			return monsterfile.GetStrings();
 		}
 	}
 }
