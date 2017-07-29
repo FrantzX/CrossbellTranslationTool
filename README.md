@@ -47,8 +47,24 @@ First of all, injecting text will create a new ISO file, so you original one wil
 Open a command prompt and go to directory where you extracted the files. Run the command:
 `OmegaX.AoNoKisekiTranslation.exe build ao [path to the Ao no Kiseki ISO] [path to the new ISO] [output directory path used the extract command]`
 
- Again, don't forget "" around the paths
-
+Again, don't forget "" around the paths.
+ 
+## EBOOT.BIN
+You can use this tool to inject an decrypted EBOOT.BIN into the translated ISO. When building a translated ISO, if the tool sees an EBOOT.BIN file in the root translation directory, it will automatically use it in the build.
+ 
+### EBOOT.BIN 'Noel' Patch
+Ao no Kiseki has a hack that changes the name of Noel from "ノエル曹長 (Sgt. Major Noel)" to "ノエル (Noel)". This takes place duing the ending scenes of the prologue. Because the name change takes place in code, normal translation does of effect this. If the build is given a decrypted EBOOT.BIN, it will patch the file, translated Noel's name. If affected her name & dialog and the description text for saves.
+ 
+### How to Get an Decrypted EBOOT.BIN With PPSSPP
++ Open PPSSPP
++ Open the Settings Menu
++ Open the Tools Menu
++ Select Developer Tools
++ Enable 'Dump decrypted EBOOT.BIN on game boot
++ Run the game.
++ The EBOOT.BIN file will be found at [PPSSPP directory]\memstick\PSP\SYSTEM\DUMP\NPJH50473.BIN
++ Copy the file to the base of the translation directory and rename it EBOOT.BIN 
+ 
 ## Download Links
 + Crossbell Translation Tool v1.2.0: https://github.com/FrantzX/CrossbellTranslationTool/releases/download/v1.2.0/CrossbellTranslationTool.zip
 + Partially Translated Output Files v1.1.0: https://github.com/FrantzX/CrossbellTranslationTool/releases/download/v1.1.0/Ao.no.Kiseki.Translation.zip
