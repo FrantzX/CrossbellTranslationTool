@@ -19,5 +19,7 @@ namespace CrossbellTranslationTool
 		public static String FilePath_btasm1bbc { get; } = @"PSP_GAME\USRDIR\data\cclm\battle1\btasm1.bcc";
 
 		public static String FilePath_sysonmembbc { get; } = @"PSP_GAME\USRDIR\data\cclm\system\sysonmem.bcc";
+
+		public static String FilePath_monsnotedt2 { get; } = @"PSP_GAME\USRDIR\data\monsnote\monsnote.dt2";
 	}
 }

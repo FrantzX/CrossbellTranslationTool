@@ -80,5 +80,31 @@ namespace CrossbellTranslationTool
 			for (T obj = pump(); condition(obj) == true; obj = pump()) yield return obj;
 		}
 
+		public static IEnumerable<IEnumerable<T>> TakeAtATime<T>(this IEnumerable<T> sequence, Int32 count)
+		{
+			Assert.IsNotNull(sequence, nameof(sequence));
+			Assert.IsTrue(count > 0, "Count must be greater than zero.");
+
+			return TakeAtATime_Impl(sequence, count);
+		}
+
+		static IEnumerable<IEnumerable<T>> TakeAtATime_Impl<T>(IEnumerable<T> sequence, Int32 count)
+		{
+			T[] bucket = new T[count];
+			var index = 0;
+
+			foreach (T obj in sequence)
+			{
+				bucket[index++] = obj;
+
+				if (index == count)
+				{
+					yield return bucket;
+					index = 0;
+				}
+			}
+
+			if (index > 0) yield return bucket;
+		}
 	}
 }
