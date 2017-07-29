@@ -13,10 +13,11 @@ A tool to assist with translating the PSP game Ao no Kiseki.
 + Books / Newspapers
 + NPC Names
 + Character Names
-+ Scenario / Dialog
++ Scenario Text / Dialog
++ Monster Text - Names / Descriptions / Ability Names
 
 ## What you cannot extract/translate with this tool
-+ Monster Text - Names / Descriptions / Ability Names
++ Monster Text in Monster Handbook
 + EBOOT.BIN Text - Mostly the game interface
 + Text in images
 
