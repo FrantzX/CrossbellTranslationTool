@@ -1,6 +1,9 @@
 # Crossbell Translation Tool
 A tool to assist with translating the PSP game Ao no Kiseki.
 
+# Thank You!
+This tool can only exist due to https://github.com/Ouroboros/EDDecompiler/
+
 ## What you can extract/translate with this tool
 + Items
 + Equipment
@@ -17,7 +20,6 @@ A tool to assist with translating the PSP game Ao no Kiseki.
 + Monster Text - Names / Descriptions / Ability Names
 
 ## What you cannot extract/translate with this tool
-+ Monster Text in Monster Handbook
 + EBOOT.BIN Text - Mostly the game interface
 + Text in images
 
@@ -48,8 +50,8 @@ Open a command prompt and go to directory where you extracted the files. Run the
  Again, don't forget "" around the paths
 
 ## Download Links
-+ Crossbell Translation Tool v1: https://github.com/FrantzX/CrossbellTranslationTool/releases/download/v1.0.0/CrossbellTranslationTool.zip
-+ Partially Translated Output Files v3: https://github.com/FrantzX/CrossbellTranslationTool/releases/download/v1.0.0/Ao.no.Kiseki.Translation.v3.zip
++ Crossbell Translation Tool v1.2.0: https://github.com/FrantzX/CrossbellTranslationTool/releases/download/v1.2.0/CrossbellTranslationTool.zip
++ Partially Translated Output Files v1.1.0: https://github.com/FrantzX/CrossbellTranslationTool/releases/download/v1.1.0/Ao.no.Kiseki.Translation.zip
 
 ## Already Translated in the Partially Translated Output Files
 + The ENTIRE prologue!
