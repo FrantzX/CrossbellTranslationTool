@@ -145,7 +145,7 @@ namespace CrossbellTranslationTool
 				var foobytes = Enumerable.Range(0, 4).Select(i => foo.Substring(i * 2, 2)).Select(str => (Byte)Int32.Parse(str, System.Globalization.NumberStyles.HexNumber)).Reverse().ToArray();
 
 				Array.Copy(foobytes, 0, buffer, 0, 4);
-				BinaryIO.WriteIntoBuffer(buffer, 4, monsterfile.Record.DataLength);
+				BinaryIO.WriteIntoBuffer(buffer, 4, monsterfiledata.Length);
 				Array.Copy(monsterfiledata, 0, buffer, 8, monsterfiledata.Length);
 
 				allbuffers.Add(buffer);
@@ -160,6 +160,7 @@ namespace CrossbellTranslationTool
 			foreach (var item in allbuffers) memorystream.Write(item, 0, item.Length);
 
 			UpdateFileData(iso, file, filebuffer);
+			Update_datalst(iso, filepath);
 			ClearFileReference(iso, IsoFilePaths.FilePath_sysonmembbc, Path.GetFileName(filepath));
 		}
 
@@ -496,6 +497,7 @@ namespace CrossbellTranslationTool
 			var buffer = (monsterfile.SaveToStream() as MemoryStream).ToArray();
 
 			UpdateFileData(iso, file, buffer);
+			Update_datalst(iso, filepath);
 
 			ClearFileReference(iso, IsoFilePaths.FilePath_btasm1bbc, Path.GetFileName(filepath));
 		}

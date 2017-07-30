@@ -4,9 +4,19 @@ namespace CrossbellTranslationTool.Iso9660
 {
 	class DirectoryRecord
 	{
+		public DirectoryRecord()
+		{
+			FileIdentifier = "";
+		}
+
 		public Byte GetSize()
 		{
 			return (Byte)(MathUtil.RoundUp(33 + FileIdentifier.Length, 2) + (SystemUseData != null ? SystemUseData.Length : 0));
+		}
+
+		public override String ToString()
+		{
+			return FileIdentifier;
 		}
 
 		public Byte ExtendedAttributeRecordLength { get; set; }

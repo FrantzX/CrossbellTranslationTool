@@ -56,7 +56,7 @@ namespace CrossbellTranslationTool.Iso9660
 		{
 			Assert.IsValidString(filepath, nameof(filepath));
 
-			using (var filestream = File.OpenWrite(filepath))
+			using (var filestream = File.Open(filepath, FileMode.Create))
 			using (var writer = new BinaryWriter(filestream))
 			{
 				foreach (var item in SectorMap)
@@ -332,7 +332,7 @@ namespace CrossbellTranslationTool.Iso9660
 		{
 			Assert.IsNotNull(descriptor, nameof(descriptor));
 
-			var output = new Dictionary<DirectoryRecord, List<DirectoryRecord>>();
+			var directorytree = new Dictionary<DirectoryRecord, List<DirectoryRecord>>();
 
 			var workinglist = new Stack<DirectoryRecord>();
 			workinglist.Push(descriptor.RootDirectory);
@@ -347,7 +347,7 @@ namespace CrossbellTranslationTool.Iso9660
 				sectorobj.Records.AddRange(children);
 
 				SectorMap[dir.SectorNumber] = sectorobj;
-				output[dir] = new List<DirectoryRecord>();
+				directorytree[dir] = new List<DirectoryRecord>();
 
 				foreach (var child in children.Skip(2))
 				{
@@ -360,11 +360,11 @@ namespace CrossbellTranslationTool.Iso9660
 						SectorMap[child.SectorNumber] = new FileSector(child, () => FileSectorReadFunc((Int32)child.SectorNumber, (Int32)child.DataLength));
 					}
 
-					output[dir].Add(child);
+					directorytree[dir].Add(child);
 				}
 			}
 
-			return output;
+			return directorytree;
 		}
 
 		List<DirectoryRecord> ReadChildrenDirectoryRecords(DirectoryRecord currentdirectory)
@@ -510,13 +510,21 @@ namespace CrossbellTranslationTool.Iso9660
 			Assert.IsNotNull(writer, nameof(writer));
 			Assert.IsNotNull(sector, nameof(sector));
 
+			var spaceleft = DefaultSectorSize;
+
 			foreach (var record in sector.Records)
 			{
 				var buffer = new Byte[record.GetSize()];
-
 				WriteDirectoryRecord(buffer, 0, record);
 
+				if (spaceleft < buffer.Length)
+				{
+					writer.BaseStream.Position += spaceleft;
+					spaceleft = DefaultSectorSize;
+				}
+
 				writer.Write(buffer);
+				spaceleft -= buffer.Length;
 			}
 		}
 
