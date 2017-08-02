@@ -6,31 +6,34 @@ namespace CrossbellTranslationTool
 {
 	class FileReader : IDisposable
 	{
-		public FileReader(Byte[] buffer)
+		public FileReader(Byte[] buffer, Encoding encoding = null)
 		{
 			Assert.IsNotNull(buffer, nameof(buffer));
 
 			Stream = new MemoryStream(buffer);
 			Buffer = new Byte[4];
 			StringBuilder = new StringBuilder(256);
+			Encoding = encoding ?? Encodings.ShiftJIS;
 		}
 
-		public FileReader(Stream stream)
+		public FileReader(Stream stream, Encoding encoding = null)
 		{
 			Assert.IsNotNull(stream, nameof(stream));
 
 			Stream = stream;
 			Buffer = new Byte[256];
 			StringBuilder = new StringBuilder(256);
+			Encoding = encoding ?? Encodings.ShiftJIS;
 		}
 
-		public FileReader(String filepath)
+		public FileReader(String filepath, Encoding encoding = null)
 		{
 			Assert.IsValidString(filepath, nameof(filepath));
 
 			Stream = File.OpenRead(filepath);
 			Buffer = new Byte[256];
 			StringBuilder = new StringBuilder(256);
+			Encoding = encoding ?? Encodings.ShiftJIS;
 		}
 
 		public void Dispose()
@@ -177,7 +180,7 @@ namespace CrossbellTranslationTool
 							break;
 						}
 
-						var substring = Encodings.ShiftJIS.GetString(Buffer, i, 2);
+						var substring = Encoding.GetString(Buffer, i, 2);
 						StringBuilder.Append(substring);
 
 						++i;
@@ -203,5 +206,7 @@ namespace CrossbellTranslationTool
 		Byte[] Buffer { get; }
 
 		StringBuilder StringBuilder { get; }
+
+		public Encoding Encoding { get; }
 	}
 }

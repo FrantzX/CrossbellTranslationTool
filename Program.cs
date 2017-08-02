@@ -7,10 +7,11 @@ namespace CrossbellTranslationTool
 	{
 		static void Main(String[] args)
 		{
-			var parser = new Parser(config => config.HelpWriter = Console.Out);
+			var parser = new Parser(settings => { settings.CaseSensitive = false; settings.HelpWriter = Console.Out; });
+
 			var result = parser.ParseArguments<CommandLine.BuildArgs, CommandLine.ExtractArgs>(args);
 
-			result.WithParsed<CommandLine.BuildArgs>(x => { });
+			result.WithParsed<CommandLine.BuildArgs>(x => BuildAction.Run(x));
 			result.WithParsed<CommandLine.ExtractArgs>(x => ExtractionAction.Run(x));
 			result.WithNotParsed(x => { });
 		}

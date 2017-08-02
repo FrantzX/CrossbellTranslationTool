@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.IO;
+using System.Text;
 
 namespace CrossbellTranslationTool
 {
@@ -57,8 +58,10 @@ namespace CrossbellTranslationTool
 			Description = description;
 		}
 
-		public Stream SaveToStream()
+		public Stream SaveToStream(Encoding encoding)
 		{
+			Assert.IsNotNull(encoding, nameof(encoding));
+
 			var stream = new MemoryStream();
 
 			Interop.WriteStructToStream(stream, Header);
@@ -80,15 +83,15 @@ namespace CrossbellTranslationTool
 			foreach (var info in CraftInfoList)
 			{
 				Interop.WriteStructToStream(stream, info.Info);
-				EncodedStringUtil.WriteStringToStream(stream, info.Name);
-				EncodedStringUtil.WriteStringToStream(stream, info.Description);
+				EncodedStringUtil.WriteStringToStream(stream, info.Name, encoding);
+				EncodedStringUtil.WriteStringToStream(stream, info.Description, encoding);
 			}
 
 			Interop.WriteStructToStream(stream, RunAway);
 			stream.WriteByte(Reserve);
 
-			EncodedStringUtil.WriteStringToStream(stream, Name);
-			EncodedStringUtil.WriteStringToStream(stream, Description);
+			EncodedStringUtil.WriteStringToStream(stream, Name, encoding);
+			EncodedStringUtil.WriteStringToStream(stream, Description, encoding);
 
 			stream.Position = 0;
 			return stream;
@@ -146,6 +149,5 @@ namespace CrossbellTranslationTool
 		String Name { get; set; }
 
 		String Description { get; set; }
-
 	}
 }

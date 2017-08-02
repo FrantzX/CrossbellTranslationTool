@@ -17,5 +17,10 @@ namespace CrossbellTranslationTool
 		/// Gets an encoding for the multibyte Shift-JIS character set.
 		/// </summary>
 		public static Encoding ShiftJIS { get; } = Encoding.GetEncoding("Shift-JIS");
+
+		/// <summary>
+		/// Gets an encoding for the multibyte Chinese Simplified character set.
+		/// </summary>
+		public static Encoding Chinese { get; } = Encoding.GetEncoding(936);
 	}
 }

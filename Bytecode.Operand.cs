@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text;
 
 namespace CrossbellTranslationTool.Bytecode
 {
@@ -120,8 +121,9 @@ namespace CrossbellTranslationTool.Bytecode
 			}
 		}
 
-		public Int32 Write(Byte[] buffer, Int32 offset)
+		public Int32 Write(Encoding encoding, Byte[] buffer, Int32 offset)
 		{
+			Assert.IsNotNull(encoding, nameof(encoding));
 			Assert.IsNotNull(buffer, nameof(buffer));
 
 			switch (Type)
@@ -153,16 +155,16 @@ namespace CrossbellTranslationTool.Bytecode
 					return 4;
 
 				case OperandType.Instruction:
-					return GetValue<Instruction>().Write(buffer, offset);
+					return GetValue<Instruction>().Write(encoding, buffer, offset);
 
 				case OperandType.Expression:
-					return GetValue<Expression>().Write(buffer, offset);
+					return GetValue<Expression>().Write(encoding, buffer, offset);
 
 				case OperandType.Operation:
-					return GetValue<Operation>().Write(buffer, offset);
+					return GetValue<Operation>().Write(encoding, buffer, offset);
 
 				case OperandType.String:
-					var bytes = EncodedStringUtil.GetBytes(GetValue<String>());
+					var bytes = EncodedStringUtil.GetBytes(GetValue<String>(), encoding);
 					Array.Copy(bytes, 0, buffer, offset, bytes.Length);
 					return bytes.Length;
 

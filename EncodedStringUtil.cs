@@ -41,62 +41,11 @@ namespace CrossbellTranslationTool
 			return count + 1;
 		}
 
-		public static String ReadString(FileReader reader)
-		{
-			Assert.IsNotNull(reader, nameof(reader));
-
-			var output = "";
-			var bytelist = new List<Byte>();
-
-			while (true)
-			{
-				var b = reader.ReadByte();
-
-				if (b == 0)
-				{
-					break;
-				}
-				else if (b < 0x20)
-				{
-					output += Encodings.ShiftJIS.GetString(bytelist.ToArray());
-					bytelist.Clear();
-
-					if (b == (Byte)StringCode.COLOR)
-					{
-						var value = reader.ReadByte();
-
-						output += (Char)b;
-						output += (Char)value;
-					}
-					else if (b == (Byte)StringCode.ITEM)
-					{
-						var value = reader.ReadUInt16();
-
-						output += (Char)b;
-						output += (Char)value;
-					}
-					else
-					{
-						output += (Char)b;
-					}
-				}
-				else
-				{
-					bytelist.Add(b);
-				}
-			}
-
-			output += Encodings.ShiftJIS.GetString(bytelist.ToArray());
-			bytelist.Clear();
-
-			return output;
-		}
-
 		public static String GetStringForJSON(String input)
 		{
 			Assert.IsNotNull(input, nameof(input));
 
-			var builder = new System.Text.StringBuilder();
+			var builder = new StringBuilder();
 
 			builder.Append('\"');
 
@@ -142,9 +91,61 @@ namespace CrossbellTranslationTool
 			return builder.ToString();
 		}
 
-		public static Byte[] GetBytes(String input)
+		public static String ReadString(FileReader reader)
+		{
+			Assert.IsNotNull(reader, nameof(reader));
+
+			var output = "";
+			var bytelist = new List<Byte>();
+
+			while (true)
+			{
+				var b = reader.ReadByte();
+
+				if (b == 0)
+				{
+					break;
+				}
+				else if (b < 0x20)
+				{
+					output += reader.Encoding.GetString(bytelist.ToArray());
+					bytelist.Clear();
+
+					if (b == (Byte)StringCode.COLOR)
+					{
+						var value = reader.ReadByte();
+
+						output += (Char)b;
+						output += (Char)value;
+					}
+					else if (b == (Byte)StringCode.ITEM)
+					{
+						var value = reader.ReadUInt16();
+
+						output += (Char)b;
+						output += (Char)value;
+					}
+					else
+					{
+						output += (Char)b;
+					}
+				}
+				else
+				{
+					bytelist.Add(b);
+				}
+			}
+
+			output += reader.Encoding.GetString(bytelist.ToArray());
+			bytelist.Clear();
+
+			return output;
+		}
+
+		public static Byte[] GetBytes(String input, Encoding encoding)
 		{
 			Assert.IsNotNull(input, nameof(input));
+			Assert.IsNotNull(encoding, nameof(encoding));
 
 			var buffer = new Byte[GetSize(input)];
 
@@ -154,7 +155,7 @@ namespace CrossbellTranslationTool
 				var @char = input[i];
 				if (@char > 0x20)
 				{
-					offset += Encodings.ShiftJIS.GetBytes(input, i, 1, buffer, offset);
+					offset += encoding.GetBytes(input, i, 1, buffer, offset);
 				}
 				else if (@char == (Byte)StringCode.COLOR)
 				{
@@ -182,12 +183,13 @@ namespace CrossbellTranslationTool
 			return buffer;
 		}
 
-		public static void WriteStringToStream(Stream stream, String value)
+		public static void WriteStringToStream(Stream stream, String value, Encoding encoding)
 		{
 			Assert.IsNotNull(stream, nameof(stream));
 			Assert.IsNotNull(value, nameof(value));
+			Assert.IsNotNull(encoding, nameof(encoding));
 
-			var bytes = GetBytes(value);
+			var bytes = GetBytes(value, encoding);
 			stream.Write(bytes, 0, bytes.Length);
 		}
 	}

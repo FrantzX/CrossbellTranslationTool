@@ -55,6 +55,7 @@
     <Compile Include="Bytecode.OperandType.cs" />
     <Compile Include="Bytecode.Operation.cs" />
     <Compile Include="Bytecode.OperationType.cs" />
+    <Compile Include="CommandLine.BaseArgs.cs" />
     <Compile Include="CommandLine.BuildArgs.cs" />
     <Compile Include="CommandLine.ExtractArgs.cs" />
     <Compile Include="EncodedStringJsonConverter.cs" />
@@ -63,8 +64,13 @@
     <Compile Include="ExtractionAction.cs" />
     <Compile Include="FileHeaders.cs" />
     <Compile Include="FileReader.cs" />
+    <Compile Include="Game.cs" />
+    <Compile Include="GameFormat.cs" />
     <Compile Include="HashCode.cs" />
     <Compile Include="Interop.cs" />
+    <Compile Include="IO.DirectoryFileSystem.cs" />
+    <Compile Include="IO.IFileSystem.cs" />
+    <Compile Include="IO.IsoFileSystem.cs" />
     <Compile Include="Iso9660.BasicVolumeDescriptor.cs" />
     <Compile Include="Iso9660.DirectoryRecord.cs" />
     <Compile Include="Iso9660.DirectoryRecordFlags.cs" />
@@ -85,7 +91,6 @@
     <Compile Include="Program.cs" />
     <Compile Include="AssemblyInfo.cs" />
     <Compile Include="ScenarioFile.cs" />
-    <Compile Include="ScenarioFileList.cs" />
     <Compile Include="StreamPositionSaver.cs" />
     <Compile Include="StringCode.cs" />
     <Compile Include="EncodedStringUtil.cs" />

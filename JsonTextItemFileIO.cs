@@ -30,6 +30,8 @@ namespace CrossbellTranslationTool
 			Assert.IsValidString(filepath, nameof(filepath));
 
 			var json = JsonConvert.SerializeObject(list, JsonSettings);
+
+			File.Delete(filepath);
 			File.WriteAllText(filepath, json);
 		}
 

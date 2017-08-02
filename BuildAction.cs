@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 
 namespace CrossbellTranslationTool
 {
@@ -11,144 +12,161 @@ namespace CrossbellTranslationTool
 		{
 			Assert.IsNotNull(args, nameof(args));
 
-			Console.WriteLine("Building ISO");
-			Console.WriteLine($"Source ISO: {args.SourceIsoPath}");
-			Console.WriteLine($"Destination ISO: {args.DestinationIsoPath}");
-			Console.WriteLine($"Data Location: {args.DataPath}");
-			Console.WriteLine();
+			if (ValidateArgs(args) == false) return;
 
-			var data_text = Text.TextFileDescription.GetTextFileData();
-			var data_scenario = ScenarioFileList.GetList();
-
-			using (var iso = new Iso9660.IsoImage(args.SourceIsoPath))
+			if (args.Format == GameFormat.PSP)
 			{
-				if (File.Exists(Path.Combine(args.DataPath, "EBOOT.BIN")) == true)
-				{
-					Console.WriteLine(@"EBOOT.BIN");
-
-					var patches = BuildEbootPatches();
-					var file = iso.GetFile(@"PSP_GAME\SYSDIR\EBOOT.BIN");
-					var buffer = File.ReadAllBytes(Path.Combine(args.DataPath, "EBOOT.BIN"));
-
-					foreach (var patch in patches)
-					{
-						if (patch.Type == BinaryPatchType.Clear)
-						{
-							for (var i = 0; i != patch.Count; ++i) buffer[patch.Offset + i] = 0;
-						}
-
-						if (patch.Type == BinaryPatchType.Overwrite)
-						{
-							if (patch.Buffer != null)
-							{
-								Array.Copy(patch.Buffer, 0, buffer, patch.Offset, patch.Buffer.Length);
-							}
-
-							if (patch.Text != null)
-							{
-								var stringbytes = EncodedStringUtil.GetBytes(patch.Text);
-								Array.Copy(stringbytes, 0, buffer, patch.Offset, stringbytes.Length);
-							}
-						}
-					}
-
-					UpdateFileData(iso, file, buffer);
-				}
-
-				var stringtableitems = JsonTextItemFileIO.ReadFromFile(Path.Combine(args.DataPath, "stringtable.json"));
-
-				foreach (var item in data_text)
-				{
-					var textfilepath = Path.Combine(IsoFilePaths.DirectoryPath_Text, item.FileName);
-					var jsonfilepath = Path.ChangeExtension(Path.Combine(args.DataPath, "text", item.FileName), ".json");
-
-					if (File.Exists(jsonfilepath) == true)
-					{
-						Console.WriteLine(item.FileName);
-						UpdateTextFile(iso, textfilepath, item.FilePointerDelegate, jsonfilepath);
-					}
-				}
-
-				foreach (var item in data_scenario)
-				{
-					var scenariofilepath = Path.Combine(IsoFilePaths.DirectoryPath_Scenario, item);
-					var jsonfilepath = Path.ChangeExtension(Path.Combine(args.DataPath, "scena", item), ".json");
-
-					if (File.Exists(jsonfilepath) == true)
-					{
-						Console.WriteLine(item);
-						UpdateScenarioFile(iso, scenariofilepath, jsonfilepath, stringtableitems);
-					}
-				}
-
-				CleanAllMC1Files(iso);
-
-				foreach (var item in iso.GetChildren(IsoFilePaths.DirectoryPath_BattleData).Where(x => x.FileIdentifier.StartsWith("ms") == true))
-				{
-					var filepath = Path.Combine(IsoFilePaths.DirectoryPath_BattleData, item.FileIdentifier);
-					var jsonfilepath = Path.ChangeExtension(Path.Combine(args.DataPath, "monster", item.FileIdentifier), ".json");
-
-					if (File.Exists(jsonfilepath) == true)
-					{
-						Console.WriteLine(item.FileIdentifier);
-						UpdateMonsterFile(iso, filepath, jsonfilepath);
-					}
-				}
-
-				UpdateMonsterNote(iso, IsoFilePaths.FilePath_monsnotedt2);
-
-				iso.GetPrimaryVolumeDescriptor().VolumeSpaceSize = iso.GetHighestSectorUsed() + 1;
-
+				Console.WriteLine("Building ISO");
+				Console.WriteLine($"Source ISO: {args.SourceIsoPath}");
+				Console.WriteLine($"Destination ISO: {args.DestinationIsoPath}");
+				Console.WriteLine($"Translation Location: {args.TranslationPath}");
 				Console.WriteLine();
-				Console.WriteLine("Writing ISO.");
 
-				iso.Save(args.DestinationIsoPath);
+				using (var iso = new Iso9660.IsoImage(args.SourceIsoPath))
+				{
+					var filesystem = new IO.IsoFileSystem(iso, @"PSP_GAME\USRDIR");
+
+					var datapath_eboot = Path.Combine(args.TranslationPath, "EBOOT.BIN");
+					if (File.Exists(datapath_eboot) == true)
+					{
+						Console.WriteLine(@"EBOOT.BIN");
+
+						UpdateEboot(iso, datapath_eboot);
+					}
+
+					Run(GameFormat.PSP, filesystem, Encodings.ShiftJIS, args.TranslationPath);
+
+					FixFileReferences(iso, filesystem);
+
+					iso.GetPrimaryVolumeDescriptor().VolumeSpaceSize = iso.GetHighestSectorUsed() + 1;
+
+					Console.WriteLine();
+					Console.WriteLine("Writing ISO.");
+
+					iso.Save(args.DestinationIsoPath);
+				}
 			}
 
-			Console.WriteLine("Done.");
+			if (args.Format == GameFormat.PC)
+			{
+				Console.WriteLine("Injecting Translation");
+				Console.WriteLine($"Game Path: {args.GamePath}");
+				Console.WriteLine($"Translation Location: {args.TranslationPath}");
+				Console.WriteLine();
+
+				var filesystem = new IO.DirectoryFileSystem(args.GamePath);
+
+				Run(GameFormat.PC, filesystem, Encodings.Chinese, args.TranslationPath);
+			}
 		}
 
-		static List<BinaryPatch> BuildEbootPatches()
+		static Boolean ValidateArgs(CommandLine.BuildArgs args)
 		{
-			var list = new List<BinaryPatch>();
+			Assert.IsNotNull(args, nameof(args));
 
-			list.Add(new BinaryPatch { Type = BinaryPatchType.Clear, Offset = 0x28DC80, Count = 6 });
-			list.Add(new BinaryPatch { Type = BinaryPatchType.Overwrite, Offset = 0x28DC80, Text = "Noel" });
+			if (args.Game != Game.Ao) return false;
+			if (args.Format == GameFormat.None) return false;
+			if (args.Format == GameFormat.PSP && (args.SourceIsoPath == "" || args.DestinationIsoPath == "")) return false;
+			if (args.Format == GameFormat.PC && args.GamePath == "") return false;
 
-			list.Add(new BinaryPatch { Type = BinaryPatchType.Clear, Offset = 0x2900C4, Count = 6 });
-			list.Add(new BinaryPatch { Type = BinaryPatchType.Overwrite, Offset = 0x2900C4, Text = "Noel" });
-
-			return list;
+			return true;
 		}
 
-		static void UpdateMonsterNote(Iso9660.IsoImage iso, String filepath)
+		static void Run(GameFormat format, IO.IFileSystem filesystem, Encoding encoding, String datapath)
 		{
-			Assert.IsNotNull(iso, nameof(iso));
-			Assert.IsValidString(filepath, nameof(filepath));
+			Assert.IsValidEnumeration(format, nameof(format), true);
+			Assert.IsNotNull(filesystem, nameof(filesystem));
+			Assert.IsNotNull(encoding, nameof(encoding));
+			Assert.IsValidString(datapath, nameof(datapath));
 
-			Console.WriteLine(Path.GetFileName(filepath));
+			var data_text = Text.TextFileDescription.GetTextFileData();
 
-			var file = iso.GetFile(filepath);
+			var stringtableitems = JsonTextItemFileIO.ReadFromFile(Path.Combine(datapath, "stringtable.json"));
+
+			foreach (var item in data_text)
+			{
+				var textfilepath = Path.Combine(@"data\text", item.FileName);
+				var jsonfilepath = Path.ChangeExtension(Path.Combine(datapath, "text", item.FileName), ".json");
+
+				if (File.Exists(jsonfilepath) == true)
+				{
+					Console.WriteLine(item.FileName);
+
+					using (var reader = filesystem.OpenFile(textfilepath, encoding))
+					{
+						var buffer = UpdateTextFile(reader, item.FilePointerDelegate, jsonfilepath);
+						filesystem.SaveFile(textfilepath, buffer);
+					}
+				}
+			}
+
+			foreach (var filepath in filesystem.GetChildren(@"data\scena", "*.bin"))
+			{
+				var filename = Path.GetFileName(filepath);
+
+				var jsonfilepath = Path.ChangeExtension(Path.Combine(datapath, "scena", filename), ".json");
+
+				if (File.Exists(jsonfilepath) == true)
+				{
+					Console.WriteLine(filename);
+
+					using (var reader = filesystem.OpenFile(filepath, encoding))
+					{
+						var buffer = UpdateScenarioFile(reader, jsonfilepath, stringtableitems);
+						filesystem.SaveFile(filepath, buffer);
+					}
+				}
+			}
+
+			foreach (var filepath in filesystem.GetChildren(@"data\battle\dat", "ms*.dat"))
+			{
+				var filename = Path.GetFileName(filepath);
+				var jsonfilepath = Path.ChangeExtension(Path.Combine(datapath, "monster", filename), ".json");
+
+				if (File.Exists(jsonfilepath) == true)
+				{
+					Console.WriteLine(filename);
+
+					using (var reader = filesystem.OpenFile(filepath, encoding))
+					{
+						var buffer = UpdateMonsterFile(reader, jsonfilepath);
+						filesystem.SaveFile(filepath, buffer);
+					}
+				}
+			}
+
+			UpdateMonsterNote(filesystem, encoding);
+		}
+
+		static void UpdateMonsterNote(IO.IFileSystem filesystem, Encoding encoding)
+		{
+			Assert.IsNotNull(filesystem, nameof(filesystem));
+			Assert.IsNotNull(encoding, nameof(encoding));
+
+			Console.WriteLine("monsnote.dt2");
+
 			var filelist = GetMonsterNoteFileList();
 
 			var allbuffers = new List<Byte[]>();
 
 			foreach (var monsterfilenumber in filelist)
 			{
-				var monsterfilepath = Path.Combine(IsoFilePaths.DirectoryPath_BattleData, "ms" + monsterfilenumber + ".dat");
-				var monsterfile = iso.GetFile(monsterfilepath);
-				var monsterfiledata = monsterfile.GetData();
+				var monsterfilepath = Path.Combine(@"data\battle\dat", "ms" + monsterfilenumber + ".dat");
+				using (var monsterreader = filesystem.OpenFile(monsterfilepath, encoding))
+				{
+					var monsterfiledata = monsterreader.ReadBytes((Int32)monsterreader.Length);
 
-				var buffer = new Byte[8 + monsterfile.Record.DataLength];
+					var buffer = new Byte[8 + monsterreader.Length];
 
-				var foo = "300" + monsterfilenumber;
-				var foobytes = Enumerable.Range(0, 4).Select(i => foo.Substring(i * 2, 2)).Select(str => (Byte)Int32.Parse(str, System.Globalization.NumberStyles.HexNumber)).Reverse().ToArray();
+					var foo = "300" + monsterfilenumber;
+					var foobytes = Enumerable.Range(0, 4).Select(i => foo.Substring(i * 2, 2)).Select(str => (Byte)Int32.Parse(str, System.Globalization.NumberStyles.HexNumber)).Reverse().ToArray();
 
-				Array.Copy(foobytes, 0, buffer, 0, 4);
-				BinaryIO.WriteIntoBuffer(buffer, 4, monsterfiledata.Length);
-				Array.Copy(monsterfiledata, 0, buffer, 8, monsterfiledata.Length);
+					Array.Copy(foobytes, 0, buffer, 0, 4);
+					BinaryIO.WriteIntoBuffer(buffer, 4, (UInt32)monsterreader.Length);
+					Array.Copy(monsterfiledata, 0, buffer, 8, monsterfiledata.Length);
 
-				allbuffers.Add(buffer);
+					allbuffers.Add(buffer);
+				}
 			}
 
 			allbuffers.Add(new Byte[] { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF });
@@ -159,9 +177,7 @@ namespace CrossbellTranslationTool
 			var memorystream = new MemoryStream(filebuffer);
 			foreach (var item in allbuffers) memorystream.Write(item, 0, item.Length);
 
-			UpdateFileData(iso, file, filebuffer);
-			Update_datalst(iso, filepath);
-			ClearFileReference(iso, IsoFilePaths.FilePath_sysonmembbc, Path.GetFileName(filepath));
+			filesystem.SaveFile(@"data\monsnote\monsnote.dt2", filebuffer);
 		}
 
 		static List<String> GetMonsterNoteFileList()
@@ -478,14 +494,11 @@ namespace CrossbellTranslationTool
 			return list;
 		}
 
-		static void UpdateMonsterFile(Iso9660.IsoImage iso, String filepath, String jsonpath)
+		static Byte[] UpdateMonsterFile(FileReader reader, String jsonpath)
 		{
-			Assert.IsNotNull(iso, nameof(iso));
-			Assert.IsValidString(filepath, nameof(filepath));
+			Assert.IsNotNull(reader, nameof(reader));
 			Assert.IsValidString(jsonpath, nameof(jsonpath));
 
-			var file = iso.GetFile(filepath);
-			var reader = new FileReader(file.GetData());
 			var monsterfile = new MonsterDefinitionFile(reader);
 
 			var json = JsonTextItemFileIO.ReadFromFile(jsonpath);
@@ -494,41 +507,33 @@ namespace CrossbellTranslationTool
 			monsterfile.SetStrings(strings);
 
 #warning Hack.
-			var buffer = (monsterfile.SaveToStream() as MemoryStream).ToArray();
-
-			UpdateFileData(iso, file, buffer);
-			Update_datalst(iso, filepath);
-
-			ClearFileReference(iso, IsoFilePaths.FilePath_btasm1bbc, Path.GetFileName(filepath));
+			var buffer = (monsterfile.SaveToStream(reader.Encoding) as MemoryStream).ToArray();
+			return buffer;
 		}
 
-		static void UpdateTextFile(Iso9660.IsoImage iso, String filepath, Text.FilePointerDelegate filepointerfunc, String jsonpath)
+		static Byte[] UpdateTextFile(FileReader reader, Text.FilePointerDelegate filepointerfunc, String jsonpath)
 		{
-			Assert.IsNotNull(iso, nameof(iso));
-			Assert.IsValidString(filepath, nameof(filepath));
+			Assert.IsNotNull(reader, nameof(reader));
 			Assert.IsNotNull(filepointerfunc, nameof(filepointerfunc));
 			Assert.IsValidString(jsonpath, nameof(jsonpath));
 
-			WriteTextFile(iso, filepath, filepointerfunc, jsonpath);
-			Update_datalst(iso, filepath);
-			ClearFileReference(iso, IsoFilePaths.FilePath_sysstartbbc, Path.GetFileName(filepath));
-			ClearFileReference(iso, IsoFilePaths.FilePath_sysonmembbc, Path.GetFileName(filepath));
+			var textitems = JsonTextItemFileIO.ReadFromFile(jsonpath);
+			var strings = textitems.Select(x => x.Translation).ToList();
+
+			return Text.TextFileIO.Write(reader, filepointerfunc, strings);
 		}
 
-		static void UpdateScenarioFile(Iso9660.IsoImage iso, String scenariofilepath, String jsonpath, List<TextItem> stringtableitems)
+		static Byte[] UpdateScenarioFile(FileReader reader, String jsonpath, List<TextItem> stringtableitems)
 		{
-			Assert.IsNotNull(iso, nameof(iso));
-			Assert.IsValidString(scenariofilepath, nameof(scenariofilepath));
+			Assert.IsNotNull(reader, nameof(reader));
 			Assert.IsValidString(jsonpath, nameof(jsonpath));
 			Assert.IsNotNull(stringtableitems, nameof(stringtableitems));
 
-			var file = iso.GetFile(scenariofilepath);
-			var scenariofile = new ScenarioFile(new FileReader(file.GetData()));
-
-			var json = JsonTextItemFileIO.ReadFromFile(jsonpath);
+			var scenariofile = new ScenarioFile(reader);
+			var textitems = JsonTextItemFileIO.ReadFromFile(jsonpath);
 
 			var scenariotext_index = 0;
-			scenariofile.VisitOperands(x => x.Type == Bytecode.OperandType.String, x => new Bytecode.Operand(Bytecode.OperandType.String, json[scenariotext_index++].GetBestText()));
+			scenariofile.VisitOperands(x => x.Type == Bytecode.OperandType.String, x => new Bytecode.Operand(Bytecode.OperandType.String, textitems[scenariotext_index++].GetBestText()));
 
 			var stringtable = scenariofile.GetStringTable();
 
@@ -543,32 +548,97 @@ namespace CrossbellTranslationTool
 			scenariofile.Fix();
 
 #warning Hack.
-			var buffer = (scenariofile.WriteToStream() as MemoryStream).ToArray();
-
-			UpdateFileData(iso, file, buffer);
-
-			Update_datalst(iso, scenariofilepath);
+			var buffer = (scenariofile.WriteToStream(reader.Encoding) as MemoryStream).ToArray();
+			return buffer;
 		}
 
-		static void WriteTextFile(Iso9660.IsoImage iso, String filepath, Text.FilePointerDelegate filepointerfunc, String jsonpath)
+		#region PSP ISO Methods
+
+		static void FixFileReferences(Iso9660.IsoImage iso, IO.IFileSystem filesystem)
 		{
 			Assert.IsNotNull(iso, nameof(iso));
-			Assert.IsValidString(filepath, nameof(filepath));
-			Assert.IsNotNull(filepointerfunc, nameof(filepointerfunc));
-			Assert.IsValidString(jsonpath, nameof(jsonpath));
+			Assert.IsNotNull(filesystem, nameof(filesystem));
 
-			var file = iso.GetFile(filepath);
-			var sourcebytes = file.GetData();
+			var data_text = Text.TextFileDescription.GetTextFileData();
 
-			var textitems = JsonTextItemFileIO.ReadFromFile(jsonpath);
-			var strings = textitems.Select(x => x.Translation).ToList();
-
-			using (var stream = new MemoryStream(sourcebytes))
-			using (var reader = new FileReader(stream))
+			foreach (var item in data_text)
 			{
-				var outputbytes = Text.TextFileIO.Write(reader, filepointerfunc, strings);
-				UpdateFileData(iso, file, outputbytes);
+				var textfilepath = Path.Combine(IsoFilePaths.DirectoryPath_Text, item.FileName);
+
+				Update_datalst(iso, textfilepath);
+				ClearFileReference(iso, IsoFilePaths.FilePath_sysstartbbc, item.FileName);
+				ClearFileReference(iso, IsoFilePaths.FilePath_sysonmembbc, item.FileName);
+
 			}
+
+			foreach (var item in filesystem.GetChildren(@"data\scena", "*.bin"))
+			{
+				var scenariofilepath = Path.Combine(@"PSP_GAME\USRDIR", item);
+
+				Update_datalst(iso, scenariofilepath);
+			}
+
+			foreach (var filepath in filesystem.GetChildren(@"data\battle\dat", "ms*.dat"))
+			{
+				var filename = Path.GetFileName(filepath);
+
+				var filepath2 = Path.Combine(@"PSP_GAME\USRDIR", filepath);
+
+				Update_datalst(iso, filepath2);
+				ClearFileReference(iso, IsoFilePaths.FilePath_btasm1bbc, filename);
+			}
+
+			CleanAllMC1Files(iso);
+
+			Update_datalst(iso, IsoFilePaths.FilePath_monsnotedt2);
+			ClearFileReference(iso, IsoFilePaths.FilePath_sysonmembbc, "monsnote.dt2");
+		}
+
+		static List<BinaryPatch> BuildEbootPatches()
+		{
+			var list = new List<BinaryPatch>();
+
+			list.Add(new BinaryPatch { Type = BinaryPatchType.Clear, Offset = 0x28DC80, Count = 6 });
+			list.Add(new BinaryPatch { Type = BinaryPatchType.Overwrite, Offset = 0x28DC80, Text = "Noel" });
+
+			list.Add(new BinaryPatch { Type = BinaryPatchType.Clear, Offset = 0x2900C4, Count = 6 });
+			list.Add(new BinaryPatch { Type = BinaryPatchType.Overwrite, Offset = 0x2900C4, Text = "Noel" });
+
+			return list;
+		}
+
+		static void UpdateEboot(Iso9660.IsoImage iso, String ebootpath)
+		{
+			Assert.IsNotNull(iso, nameof(iso));
+			Assert.IsValidString(ebootpath, nameof(ebootpath));
+
+			var patches = BuildEbootPatches();
+			var file = iso.GetFile(@"PSP_GAME\SYSDIR\EBOOT.BIN");
+			var buffer = File.ReadAllBytes(ebootpath);
+
+			foreach (var patch in patches)
+			{
+				if (patch.Type == BinaryPatchType.Clear)
+				{
+					for (var i = 0; i != patch.Count; ++i) buffer[patch.Offset + i] = 0;
+				}
+
+				if (patch.Type == BinaryPatchType.Overwrite)
+				{
+					if (patch.Buffer != null)
+					{
+						Array.Copy(patch.Buffer, 0, buffer, patch.Offset, patch.Buffer.Length);
+					}
+
+					if (patch.Text != null)
+					{
+						var stringbytes = EncodedStringUtil.GetBytes(patch.Text, Encodings.ShiftJIS);
+						Array.Copy(stringbytes, 0, buffer, patch.Offset, stringbytes.Length);
+					}
+				}
+			}
+
+			UpdateFileData(iso, file, buffer);
 		}
 
 		static void Update_datalst(Iso9660.IsoImage iso, String filepath)
@@ -707,5 +777,7 @@ namespace CrossbellTranslationTool
 
 			return -1;
 		}
+
+		#endregion
 	}
 }

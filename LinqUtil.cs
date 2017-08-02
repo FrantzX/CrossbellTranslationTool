@@ -6,6 +6,14 @@ namespace CrossbellTranslationTool
 {
 	static class LinqUtil
 	{
+		public static T[] GetUnderlyingArray<T>(this List<T> list)
+		{
+			Assert.IsNotNull(list, nameof(list));
+
+			var fieldinfo = list.GetType().GetField("_items", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+			return (T[])fieldinfo.GetValue(list);
+		}
+
 		public static void ForEach<T>(this IEnumerable<T> sequence, Action<T> function)
 		{
 			Assert.IsNotNull(sequence, nameof(sequence));

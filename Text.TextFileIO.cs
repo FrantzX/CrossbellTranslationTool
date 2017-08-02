@@ -55,8 +55,8 @@ namespace CrossbellTranslationTool.Text
 
 				if (newstr == "") continue;
 
-				var oldstrbytes = Encodings.ShiftJIS.GetBytes(oldstr);
-				var newstrbytes = Encodings.ShiftJIS.GetBytes(newstr);
+				var oldstrbytes = reader.Encoding.GetBytes(oldstr);
+				var newstrbytes = reader.Encoding.GetBytes(newstr);
 
 				var sizedifference = newstrbytes.Length - oldstrbytes.Length;
 

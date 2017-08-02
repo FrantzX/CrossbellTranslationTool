@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.IO;
+using System.Text;
 
 namespace CrossbellTranslationTool
 {
@@ -54,8 +55,10 @@ namespace CrossbellTranslationTool
 			VisitOperands(x => x.Type == Bytecode.OperandType.BattleOffset, CreateOffsetWalker(offsetchanges, Bytecode.OperandType.BattleOffset));
 		}
 
-		public Stream WriteToStream()
+		public Stream WriteToStream(Encoding encoding)
 		{
+			Assert.IsNotNull(encoding, nameof(encoding));
+
 			var memstream = new MemoryStream(1024);
 
 			foreach (var item in FileMap)
@@ -141,7 +144,7 @@ namespace CrossbellTranslationTool
 				}
 				else if (item.Value is String str)
 				{
-					var bytes = EncodedStringUtil.GetBytes(str);
+					var bytes = EncodedStringUtil.GetBytes(str, encoding);
 					memstream.Write(bytes, 0, bytes.Length);
 				}
 				else if (item.Value is FileHeaders.SCENARIO_BATTLE battle)
@@ -167,7 +170,7 @@ namespace CrossbellTranslationTool
 				else if (item.Value is Bytecode.Instruction instruction)
 				{
 					var bytes = new Byte[instruction.GetSize()];
-					instruction.Write(bytes, 0);
+					instruction.Write(encoding, bytes, 0);
 					memstream.Write(bytes, 0, bytes.Length);
 				}
 				else if (item.Value is FileHeaders.SCENARIO_ATBONUS atbonus)

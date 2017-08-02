@@ -354,9 +354,13 @@ namespace CrossbellTranslationTool.Text
 
 		public static void ReadFilePointers_ittxt2(FileReader reader, List<FilePointer> allpointers, List<FilePointer> stringpointers)
 		{
+			reader.Stream.Position = 2;
+
+			var recordcount = reader.ReadUInt16();
+
 			reader.Stream.Position = 0x10;
 
-			var recordpositions = LinqUtil.Pump(() => reader.ReadFilePointer16(), x => x.Value != 0).ToList();
+			var recordpositions = LinqUtil.Pump(() => reader.ReadFilePointer16(), recordcount).ToList();
 
 			foreach (var position_record in recordpositions)
 			{
