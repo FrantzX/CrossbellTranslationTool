@@ -66,8 +66,8 @@ Ao no Kiseki has a hack that changes the name of Noel from "ノエル曹長 (Sgt
 + Copy the file to the base of the translation directory and rename it EBOOT.BIN 
  
 ## Download Links
-+ Crossbell Translation Tool v1.2.0: https://github.com/FrantzX/CrossbellTranslationTool/releases/download/v1.2.0/CrossbellTranslationTool.zip
-+ Partially Translated Output Files v1.1.0: https://github.com/FrantzX/CrossbellTranslationTool/releases/download/v1.1.0/Ao.no.Kiseki.Translation.zip
++ Crossbell Translation Tool v1.3.0: https://github.com/FrantzX/CrossbellTranslationTool/releases/download/v1.3.0/CrossbellTranslationTool.zip
++ Partially Translated Output Files v1.3.0: https://github.com/FrantzX/CrossbellTranslationTool/releases/download/v1.3.0/Ao.no.Kiseki.Translation.zip
 
 ## Already Translated in the Partially Translated Output Files
 + The ENTIRE prologue!
