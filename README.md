@@ -38,7 +38,7 @@ The latest version of this tool allows for the extraction/injection of text into
 ## How to Extract Text 
 First, download the translation tool at the link below and extract the zip somewhere. I recommend its own directory.  
 Next, open a command prompt and go to directory where you extracted the files. Run the following command for your format. I recommand surround paths with double quotes (").  
-`CrossbellTranslationTool.exe extract -f PSP -g Ao -t {translationpath} -p {pcdirectory}`
+`CrossbellTranslationTool.exe extract -f PSP -g Ao -t {translationpath} -p {pcdirectory}`  
 `CrossbellTranslationTool.exe extract -f PC -g Ao -t {translationpath} -s {sourceiso} -d {destinationiso}`
 
 This is place a bunch of files in the given translation directory.
@@ -60,7 +60,7 @@ Be sure to keep those in you translations. The # codes at the beginning of the t
 ## How to Inject Text
 First of all, injecting text will create a new ISO file, so you original one will not be changed.  
 Open a command prompt and go to directory where you extracted the files. Run the following command for your format. Backup for data folder first if you are building for PC.  
-`CrossbellTranslationTool.exe build -f PSP -g Ao -t {translationpath} -p {pcdirectory}`
+`CrossbellTranslationTool.exe build -f PSP -g Ao -t {translationpath} -p {pcdirectory}`  
 `CrossbellTranslationTool.exe build -f PC -g Ao -t {translationpath} -s {sourceiso} -d {destinationiso}`
 
 Again, don't forget "" around the paths.
