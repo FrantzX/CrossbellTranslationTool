@@ -11,7 +11,7 @@ namespace CrossbellTranslationTool
 		{
 			var jsonsettings = new JsonSerializerSettings();
 			jsonsettings.Formatting = Formatting.Indented;
-			jsonsettings.Converters.Add(new EncodingStringJsonConverter());
+			jsonsettings.Converters.Add(new EncodedStringJsonConverter());
 
 			JsonSettings = jsonsettings;
 		}
