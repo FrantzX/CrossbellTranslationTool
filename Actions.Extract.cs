@@ -4,9 +4,9 @@ using System.IO;
 using System.Linq;
 using System.Text;
 
-namespace CrossbellTranslationTool
+namespace CrossbellTranslationTool.Actions
 {
-	static class ExtractionAction
+	static class Extract
 	{
 		public static void Run(CommandLine.ExtractArgs args)
 		{
@@ -54,7 +54,7 @@ namespace CrossbellTranslationTool
 			return true;
 		}
 
-		static void Run(IO.IFileSystem filesystem, Encoding encoding, String datapath)
+		public static void Run(IO.IFileSystem filesystem, Encoding encoding, String datapath)
 		{
 			Assert.IsNotNull(filesystem, nameof(filesystem));
 			Assert.IsNotNull(encoding, nameof(encoding));

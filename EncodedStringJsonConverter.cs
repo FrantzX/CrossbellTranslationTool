@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace CrossbellTranslationTool
 {
@@ -55,9 +56,113 @@ namespace CrossbellTranslationTool
 		{
 			var str = (String)value;
 
-			InternalWriteValue(writer, JsonToken.String);
+			var tokens = TokenizeString(str);
+			if (tokens.Count > 1)
+			{
+				writer.WriteStartArray();
 
-			writer.WriteRaw(EncodedStringUtil.GetStringForJSON(str));
+				foreach (var token in tokens)
+				{
+					InternalWriteValue(writer, JsonToken.String);
+
+					writer.WriteRaw(EncodedStringUtil.GetStringForJSON(token));
+				}
+
+				writer.WriteEndArray();
+			}
+			else
+			{
+				InternalWriteValue(writer, JsonToken.String);
+
+				writer.WriteRaw(EncodedStringUtil.GetStringForJSON(str));
+			}
+		}
+
+		List<String> TokenizeString(String value)
+		{
+			Assert.IsNotNull(value, nameof(value));
+
+			StringBuilder.Length = 0;
+
+			var tokens = new List<String>();
+
+			void AddToken()
+			{
+				if (StringBuilder.Length > 0)
+				{
+					tokens.Add(StringBuilder.ToString());
+
+					StringBuilder.Length = 0;
+				}
+			}
+
+			for (var i = 0; i != value.Length; ++i)
+			{
+				var c = value[i];
+
+				if (c == (Char)StringCode.NEWLINE)
+				{
+					StringBuilder.Append(c);
+					AddToken();
+				}
+				else if (c == (Char)StringCode.ENTER)
+				{
+					StringBuilder.Append(c);
+					AddToken();
+				}
+				else if (c == (Char)StringCode.CLEAR)
+				{
+					StringBuilder.Append(c);
+					AddToken();
+				}
+				else if (c == (Char)StringCode.COLOR)
+				{
+					AddToken();
+
+					StringBuilder.Append(c);
+					StringBuilder.Append(value[++i]);
+
+					AddToken();
+				}
+				else if (c == (Char)StringCode.ITEM)
+				{
+					AddToken();
+
+					StringBuilder.Append(c);
+					StringBuilder.Append(value[++i]);
+
+					AddToken();
+				}
+				else if (c == '#')
+				{
+					AddToken();
+
+					StringBuilder.Append(c);
+
+					var pump = LinqUtil.Pump(() => value[++i], @char => Char.IsLetter(@char) == false);
+					foreach (var @char in pump) StringBuilder.Append(@char);
+
+					StringBuilder.Append(value[i]);
+
+					if (StringBuilder[StringBuilder.Length - 1] == 'R')
+					{
+						var pump2 = LinqUtil.Pump(() => value[++i], @char => @char != '#');
+						foreach (var @char in pump2) StringBuilder.Append(@char);
+
+						StringBuilder.Append(value[i]);
+					}
+
+					AddToken();
+				}
+				else
+				{
+					StringBuilder.Append(c);
+				}
+			}
+
+			AddToken();
+
+			return tokens;
 		}
 
 		public override Boolean CanRead => true;

@@ -4,9 +4,9 @@ using System.IO;
 using System.Linq;
 using System.Text;
 
-namespace CrossbellTranslationTool
+namespace CrossbellTranslationTool.Actions
 {
-	static class BuildAction
+	static class Build
 	{
 		public static void Run(CommandLine.BuildArgs args)
 		{
@@ -506,9 +506,7 @@ namespace CrossbellTranslationTool
 
 			monsterfile.SetStrings(strings);
 
-#warning Hack.
-			var buffer = (monsterfile.SaveToStream(reader.Encoding) as MemoryStream).ToArray();
-			return buffer;
+			return monsterfile.Write(reader.Encoding);
 		}
 
 		static Byte[] UpdateTextFile(FileReader reader, Text.FilePointerDelegate filepointerfunc, String jsonpath)
@@ -547,9 +545,7 @@ namespace CrossbellTranslationTool
 
 			scenariofile.Fix();
 
-#warning Hack.
-			var buffer = (scenariofile.WriteToStream(reader.Encoding) as MemoryStream).ToArray();
-			return buffer;
+			return scenariofile.Write(reader.Encoding);
 		}
 
 		#region PSP ISO Methods
@@ -648,7 +644,7 @@ namespace CrossbellTranslationTool
 
 			var datalist = iso.GetFile(IsoFilePaths.FilePath_datalst);
 			var datalistbuffer = datalist.GetData();
-			var extensionslist = ReadDataLstExtensions(new FileReader(datalistbuffer));
+			var extensionslist = ReadDataLstExtensions(new FileReader(datalistbuffer, Encodings.ASCII));
 
 			var filerecord = iso.GetFile(filepath);
 

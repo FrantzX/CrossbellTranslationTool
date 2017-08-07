@@ -58,7 +58,7 @@ namespace CrossbellTranslationTool
 			Description = description;
 		}
 
-		public Stream SaveToStream(Encoding encoding)
+		public Byte[] Write(Encoding encoding)
 		{
 			Assert.IsNotNull(encoding, nameof(encoding));
 
@@ -93,8 +93,7 @@ namespace CrossbellTranslationTool
 			EncodedStringUtil.WriteStringToStream(stream, Name, encoding);
 			EncodedStringUtil.WriteStringToStream(stream, Description, encoding);
 
-			stream.Position = 0;
-			return stream;
+			return stream.ToArray();
 		}
 
 		public List<String> GetStrings()

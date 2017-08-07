@@ -47,15 +47,20 @@ namespace CrossbellTranslationTool
 
 			FileMap[0] = UpdateHeader((FileHeaders.SCENARIO_HEADER)FileMap[0], offsetfixer);
 
-			UpdateMainFunctionOffsets((List<UInt32>)FileMap.First(x => x.Value is List<UInt32>).Value, offsetfixer);
+			UpdateMainFunctionOffsets(FileMap.Values.OfType<List<UInt32>>().First(), offsetfixer);
+
+			var placenames = FileMap.Values.OfType<List<FileHeaders.SCENARIO_PLACENAME>>().FirstOrDefault();
+			if (placenames != null) UpdatePlaceNames(placenames, offsetfixer);
 
 			UpdateBattle(FileMap, offsetfixer);
 
 			VisitOperands(x => x.Type == Bytecode.OperandType.InstructionOffset, CreateOffsetWalker(offsetchanges, Bytecode.OperandType.InstructionOffset));
 			VisitOperands(x => x.Type == Bytecode.OperandType.BattleOffset, CreateOffsetWalker(offsetchanges, Bytecode.OperandType.BattleOffset));
+
+			QueueWorkItem2Hack();
 		}
 
-		public Stream WriteToStream(Encoding encoding)
+		public Byte[] Write(Encoding encoding)
 		{
 			Assert.IsNotNull(encoding, nameof(encoding));
 
@@ -189,8 +194,7 @@ namespace CrossbellTranslationTool
 				}
 			}
 
-			memstream.Position = 0;
-			return memstream;
+			return memstream.ToArray();
 		}
 
 		public List<String> GetStringTable()
@@ -426,6 +430,36 @@ namespace CrossbellTranslationTool
 
 		#region Fixing
 
+
+		/// <summary>
+		/// Has to be called after fixing jump offsets.
+		/// </summary>
+		void QueueWorkItem2Hack()
+		{
+			foreach (var item in FileMap.Where(x => x.Value is Bytecode.Instruction instruction && instruction.Definition == Bytecode.InstructionTable_AoKScena.QueueWorkItem2))
+			{
+				var queueworkitem2 = (Bytecode.Instruction)item.Value;
+				var jump = queueworkitem2.Operands.Last().GetValue<Bytecode.Instruction>();
+
+				jump.Operands[0] = new Bytecode.Operand(Bytecode.OperandType.InstructionOffset, item.Key + 5);
+			}
+		}
+
+		static void UpdatePlaceNames(List<FileHeaders.SCENARIO_PLACENAME> placenames, Func<UInt32, UInt32> fixer)
+		{
+			Assert.IsNotNull(placenames, nameof(placenames));
+			Assert.IsNotNull(fixer, nameof(fixer));
+
+			for (var i = 0; i != placenames.Count; ++i)
+			{
+				var placename = placenames[i];
+
+				placename.NameOffset = fixer(placename.NameOffset);
+
+				placenames[i] = placename;
+			}
+		}
+
 		static void UpdateBattle(IDictionary<UInt32, Object> filemap, Func<UInt32, UInt32> fixer)
 		{
 			Assert.IsNotNull(filemap, nameof(filemap));
@@ -480,12 +514,6 @@ namespace CrossbellTranslationTool
 
 					list[i] = new KeyValuePair<UInt32, Object>(itemoffset, item.Value);
 					changes[item.Key] = itemoffset;
-
-#warning Hack
-					if (item.Value is Bytecode.Instruction instruction && instruction.Definition == Bytecode.InstructionTable_AoKScena.QueueWorkItem2)
-					{
-						instruction.Operands.Last().GetValue<Bytecode.Instruction>().Operands[0] = new Bytecode.Operand(Bytecode.OperandType.InstructionOffset, itemoffset + 5);
-					}
 				}
 
 				var size = (UInt32)GetObjectSize(item.Value);
@@ -558,6 +586,6 @@ namespace CrossbellTranslationTool
 
 		#endregion
 
-		SortedDictionary<UInt32, Object> FileMap { get; }
+		public SortedDictionary<UInt32, Object> FileMap { get; }
 	}
 }

@@ -39,11 +39,12 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Actions.FormatJson.cs" />
     <Compile Include="Assert.cs" />
     <Compile Include="BinaryIO.cs" />
     <Compile Include="BinaryPatch.cs" />
     <Compile Include="BinaryPatchType.cs" />
-    <Compile Include="BuildAction.cs" />
+    <Compile Include="Actions.Build.cs" />
     <Compile Include="Bytecode.Disassembler.cs" />
     <Compile Include="Bytecode.DisassemblyState.cs" />
     <Compile Include="Bytecode.Expression.cs" />
@@ -58,10 +59,11 @@
     <Compile Include="CommandLine.BaseArgs.cs" />
     <Compile Include="CommandLine.BuildArgs.cs" />
     <Compile Include="CommandLine.ExtractArgs.cs" />
+    <Compile Include="CommandLine.FormatJsonArgs.cs" />
     <Compile Include="EncodedStringJsonConverter.cs" />
     <Compile Include="Encodings.cs" />
     <Compile Include="Endian.cs" />
-    <Compile Include="ExtractionAction.cs" />
+    <Compile Include="Actions.Extract.cs" />
     <Compile Include="FileHeaders.cs" />
     <Compile Include="FileReader.cs" />
     <Compile Include="Game.cs" />

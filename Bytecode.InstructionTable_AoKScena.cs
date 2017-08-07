@@ -334,7 +334,7 @@ namespace CrossbellTranslationTool.Bytecode
 				operands.Add(state.ReadOperand(OperandType.Int32));
 			}
 
-			if (key == 1 || key == 2)
+			if (key == 2 || key == 3)
 			{
 				operands.Add(state.ReadOperand(OperandType.Byte));
 			}

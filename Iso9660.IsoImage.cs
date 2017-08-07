@@ -19,7 +19,7 @@ namespace CrossbellTranslationTool.Iso9660
 			Assert.IsNotNull(filepath, nameof(filepath));
 
 			SectorMap = new SortedDictionary<UInt32, SectorObject>();
-			Reader = new FileReader(filepath);
+			Reader = new FileReader(filepath, Encodings.ASCII);
 
 			Reader.Position = DefaultSectorSize * 16;
 

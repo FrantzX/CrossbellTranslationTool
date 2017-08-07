@@ -6,34 +6,37 @@ namespace CrossbellTranslationTool
 {
 	class FileReader : IDisposable
 	{
-		public FileReader(Byte[] buffer, Encoding encoding = null)
+		public FileReader(Byte[] buffer, Encoding encoding)
 		{
 			Assert.IsNotNull(buffer, nameof(buffer));
+			Assert.IsNotNull(encoding, nameof(encoding));
 
 			Stream = new MemoryStream(buffer);
 			Buffer = new Byte[4];
 			StringBuilder = new StringBuilder(256);
-			Encoding = encoding ?? Encodings.ShiftJIS;
+			Encoding = encoding;
 		}
 
-		public FileReader(Stream stream, Encoding encoding = null)
+		public FileReader(Stream stream, Encoding encoding)
 		{
 			Assert.IsNotNull(stream, nameof(stream));
+			Assert.IsNotNull(encoding, nameof(encoding));
 
 			Stream = stream;
 			Buffer = new Byte[256];
 			StringBuilder = new StringBuilder(256);
-			Encoding = encoding ?? Encodings.ShiftJIS;
+			Encoding = encoding;
 		}
 
-		public FileReader(String filepath, Encoding encoding = null)
+		public FileReader(String filepath, Encoding encoding)
 		{
 			Assert.IsValidString(filepath, nameof(filepath));
+			Assert.IsNotNull(encoding, nameof(encoding));
 
 			Stream = File.OpenRead(filepath);
 			Buffer = new Byte[256];
 			StringBuilder = new StringBuilder(256);
-			Encoding = encoding ?? Encodings.ShiftJIS;
+			Encoding = encoding;
 		}
 
 		public void Dispose()
@@ -159,7 +162,7 @@ namespace CrossbellTranslationTool
 							var item = BinaryIO.ReadUInt16FromBuffer(Buffer, i + 1);
 
 							StringBuilder.Append((Char)Buffer[i]);
-							StringBuilder.Append(item);
+							StringBuilder.Append((Char)item);
 
 							i = i + 2;
 						}
