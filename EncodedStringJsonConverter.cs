@@ -133,6 +133,11 @@ namespace CrossbellTranslationTool
 
 					AddToken();
 				}
+				else if (c == '\n')
+				{
+					StringBuilder.Append(c);
+					AddToken();
+				}
 				else if (c == '#')
 				{
 					AddToken();
