@@ -1,4 +1,4 @@
-# Crossbell Translation Tool v1.4.0
+# Crossbell Translation Tool v1.5.0
 A tool to assist with translating the PSP & PC game Ao no Kiseki.
 
 # Thank You!
@@ -82,7 +82,7 @@ Ao no Kiseki has a hack that changes the name of Noel from "ノエル曹長 (Sgt
 + Copy the file to the base of the translation directory and rename it EBOOT.BIN 
  
 ## Download Links
-+ https://github.com/FrantzX/CrossbellTranslationTool/releases/tag/v1.4.0
++ https://github.com/FrantzX/CrossbellTranslationTool/releases/tag/v1.5.0
 
 ## Already Translated in the Partially Translated Output Files (Japanese PSP only)
 + The ENTIRE prologue!
