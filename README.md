@@ -80,6 +80,9 @@ Ao no Kiseki has a hack that changes the name of Noel from "ノエル曹長 (Sgt
 + Run the game.
 + The EBOOT.BIN file will be found at [PPSSPP directory]\memstick\PSP\SYSTEM\DUMP\NPJH50473.BIN
 + Copy the file to the base of the translation directory and rename it EBOOT.BIN 
+
+## End of Chapter Saves
+These saves seem to be usually fragile, and only look to work with the ISO they were made on. Other saves are fine, but don't try wo switch translations or ISOs using end of chapter saves.
  
 ## Download Links
 + https://github.com/FrantzX/CrossbellTranslationTool/releases/tag/v1.6.0.1
