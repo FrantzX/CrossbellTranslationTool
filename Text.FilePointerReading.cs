@@ -232,19 +232,72 @@ namespace CrossbellTranslationTool.Text
 
 		public static void ReadFilePointers_fish(FileReader reader, List<FilePointer> allpointers, List<FilePointer> stringpointers)
 		{
-			reader.Stream.Position = 0;
+			reader.Position = 0;
 
-			for (var i = 0; i != 31; ++i)
+			void Foo1()
 			{
-				reader.Stream.Position += 14;
+				reader.Position = 6;
 
-				var stringpointer = reader.ReadFilePointer16();
+				var ptr = reader.ReadFilePointer16();
+				allpointers.Add(ptr);
 
-				allpointers.Add(stringpointer);
-				stringpointers.Add(stringpointer);
+				reader.Position = ptr.Value;
 
-				reader.Stream.Position += 44;
+				var list = LinqUtil.Pump(() => reader.ReadFilePointer16(), 5).ToList();
+
+				allpointers.AddRange(list);
+				stringpointers.AddRange(list);
 			}
+
+			void Foo2()
+			{
+				reader.Position = 8;
+
+				var ptr = reader.ReadFilePointer16();
+				allpointers.Add(ptr);
+
+				reader.Position = ptr.Value;
+
+				var list = LinqUtil.Pump(() => reader.ReadFilePointer16(), 5).ToList();
+
+				allpointers.AddRange(list);
+			}
+
+			void Foo3()
+			{
+				reader.Position = 10;
+
+				var ptr = reader.ReadFilePointer16();
+				allpointers.Add(ptr);
+
+				reader.Position = ptr.Value;
+
+				var list = LinqUtil.Pump(() => reader.ReadFilePointer16(), 120).ToList();
+
+				allpointers.AddRange(list);
+				stringpointers.AddRange(list);
+			}
+
+			void Foo4()
+			{
+				reader.Position = 12;
+
+				for (var i = 0; i != 31; ++i)
+				{
+					var num = reader.ReadUInt16();
+					var stringpointer = reader.ReadFilePointer16();
+
+					allpointers.Add(stringpointer);
+					stringpointers.Add(stringpointer);
+
+					reader.Position += 56;
+				}
+			}
+
+			Foo1();
+			Foo2();
+			Foo3();
+			Foo4();
 		}
 
 		public static void ReadFilePointers_memo(FileReader reader, List<FilePointer> allpointers, List<FilePointer> stringpointers)

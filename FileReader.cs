@@ -44,6 +44,13 @@ namespace CrossbellTranslationTool
 			Stream.Dispose();
 		}
 
+		public Int32 Peek()
+		{
+			var count = Stream.Read(Buffer, 0, 1);
+
+			return (count == 1) ? Buffer[0] : -1;
+		}
+
 		public Byte[] ReadBytes(Int32 count)
 		{
 			var buffer = new Byte[count];

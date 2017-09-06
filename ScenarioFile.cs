@@ -215,6 +215,24 @@ namespace CrossbellTranslationTool
 			}
 		}
 
+		public IEnumerable<Bytecode.Instruction> WalkInstructions()
+		{
+			var instructionlist = new List<Bytecode.Instruction>();
+
+			foreach (var item in FileMap.Values)
+			{
+				if (item is Bytecode.Instruction instruction)
+				{
+					yield return instruction;
+
+					VisitOperands(instruction, x => x.Operands, o => o.Type == Bytecode.OperandType.Instruction, (root, list, index) => { instructionlist.Add((Bytecode.Instruction)list[index].Value); });
+
+					foreach (var childinstruction in instructionlist) yield return childinstruction;
+					instructionlist.Clear();
+				}
+			}
+		}
+
 		public void VisitOperands(Func<Bytecode.Operand, Boolean> filter, Action<Bytecode.Operand> visitor)
 		{
 			Assert.IsNotNull(filter, nameof(filter));
@@ -222,7 +240,7 @@ namespace CrossbellTranslationTool
 
 			foreach (var instruction in FileMap.Values.OfType<Bytecode.Instruction>())
 			{
-				VisitOperands(instruction, x => x.Operands, filter, (list, index) => { visitor(list[index]); });
+				VisitOperands(instruction, x => x.Operands, filter, (root, list, index) => { visitor(list[index]); });
 			}
 		}
 
@@ -233,11 +251,11 @@ namespace CrossbellTranslationTool
 
 			foreach (var instruction in FileMap.Values.OfType<Bytecode.Instruction>())
 			{
-				VisitOperands(instruction, x => x.Operands, filter, (list, index) => { var item = visitor(list[index]); if (item != null) list[index] = item; });
+				VisitOperands(instruction, x => x.Operands, filter, (root, list, index) => { var item = visitor(list[index]); if (item != null) list[index] = item; });
 			}
 		}
 
-		void VisitOperands<T>(T root, Func<T, List<Bytecode.Operand>> locator, Func<Bytecode.Operand, Boolean> filter, Action<List<Bytecode.Operand>, Int32> callback)
+		void VisitOperands<T>(T root, Func<T, List<Bytecode.Operand>> locator, Func<Bytecode.Operand, Boolean> filter, Action<Object, List<Bytecode.Operand>, Int32> callback)
 		{
 			Assert.IsNotNull(root, nameof(root));
 			Assert.IsNotNull(locator, nameof(locator));
@@ -252,7 +270,7 @@ namespace CrossbellTranslationTool
 
 				if (filter(operand) == true)
 				{
-					callback(list, i);
+					callback(root, list, i);
 				}
 
 				if (operand.Type == Bytecode.OperandType.Instruction)
@@ -268,7 +286,6 @@ namespace CrossbellTranslationTool
 					}
 				}
 			}
-
 		}
 
 		#region Reading
@@ -429,7 +446,6 @@ namespace CrossbellTranslationTool
 		#endregion
 
 		#region Fixing
-
 
 		/// <summary>
 		/// Has to be called after fixing jump offsets.

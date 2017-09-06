@@ -87,7 +87,7 @@ namespace CrossbellTranslationTool.Bytecode
 			OP_4D = new InstructionDefinition(0x4D, "OP_4D", InstructionFlags.None, DefaultBuildInstruction);
 			RunExpression = new InstructionDefinition(0x4E, "RunExpression", InstructionFlags.None, DefaultBuildInstruction, OperandType.UInt16, OperandType.Expression);
 			OP_4F = new InstructionDefinition(0x4F, "OP_4F", InstructionFlags.None, DefaultBuildInstruction);
-			OP_50 = new InstructionDefinition(0x50, "OP_50", InstructionFlags.None, DefaultBuildInstruction, OperandType.Byte, OperandType.Expression);
+			GetValueIndex = new InstructionDefinition(0x50, "GetValueIndex", InstructionFlags.None, DefaultBuildInstruction, OperandType.Byte, OperandType.Expression);
 			OP_51 = new InstructionDefinition(0x51, "OP_51", InstructionFlags.None, DefaultBuildInstruction);
 			OP_52 = new InstructionDefinition(0x52, "OP_52", InstructionFlags.None, DefaultBuildInstruction, OperandType.UInt16, OperandType.Byte, OperandType.Expression);
 			TalkBegin = new InstructionDefinition(0x53, "TalkBegin", InstructionFlags.None, DefaultBuildInstruction, OperandType.UInt16);
@@ -685,7 +685,7 @@ namespace CrossbellTranslationTool.Bytecode
 		public static InstructionDefinition OP_4D { get; }
 		public static InstructionDefinition RunExpression { get; }
 		public static InstructionDefinition OP_4F { get; }
-		public static InstructionDefinition OP_50 { get; }
+		public static InstructionDefinition GetValueIndex { get; }
 		public static InstructionDefinition OP_51 { get; }
 		public static InstructionDefinition OP_52 { get; }
 		public static InstructionDefinition TalkBegin { get; }
