@@ -34,9 +34,9 @@ namespace CrossbellTranslationTool.Actions
 						UpdateEboot(iso, datapath_eboot);
 					}
 
-					Run(GameFormat.PSP, filesystem, Encodings.ShiftJIS, args.TranslationPath);
+					Run(args.Game, GameFormat.PSP, filesystem, Encodings.ShiftJIS, args.TranslationPath);
 
-					FixFileReferences(iso, filesystem);
+					FixFileReferences(args.Game, iso, filesystem);
 
 					iso.GetPrimaryVolumeDescriptor().VolumeSpaceSize = iso.GetHighestSectorUsed() + 1;
 
@@ -56,7 +56,7 @@ namespace CrossbellTranslationTool.Actions
 
 				var filesystem = new IO.DirectoryFileSystem(args.GamePath);
 
-				Run(GameFormat.PC, filesystem, Encodings.Chinese, args.TranslationPath);
+				Run(args.Game, GameFormat.PC, filesystem, Encodings.Chinese, args.TranslationPath);
 			}
 		}
 
@@ -72,14 +72,15 @@ namespace CrossbellTranslationTool.Actions
 			return true;
 		}
 
-		static void Run(GameFormat format, IO.IFileSystem filesystem, Encoding encoding, String datapath)
+		static void Run(Game game, GameFormat format, IO.IFileSystem filesystem, Encoding encoding, String datapath)
 		{
+			Assert.IsValidEnumeration(game, nameof(game), true);
 			Assert.IsValidEnumeration(format, nameof(format), true);
 			Assert.IsNotNull(filesystem, nameof(filesystem));
 			Assert.IsNotNull(encoding, nameof(encoding));
 			Assert.IsValidString(datapath, nameof(datapath));
 
-			var data_text = Text.TextFileDescription.GetTextFileData();
+			var data_text = Text.TextFileDescription.GetTextFileData(game);
 
 			var stringtableitems = JsonTextItemFileIO.ReadFromFile(Path.Combine(datapath, "stringtable.json"));
 
@@ -94,7 +95,7 @@ namespace CrossbellTranslationTool.Actions
 
 					using (var reader = filesystem.OpenFile(textfilepath, encoding))
 					{
-						var buffer = UpdateTextFile(reader, item.FilePointerDelegate, jsonfilepath);
+						var buffer = UpdateTextFile(reader, item.FilePointerDelegate, item.RecordCount, jsonfilepath);
 						filesystem.SaveFile(textfilepath, buffer);
 					}
 				}
@@ -112,7 +113,7 @@ namespace CrossbellTranslationTool.Actions
 
 					using (var reader = filesystem.OpenFile(filepath, encoding))
 					{
-						var buffer = UpdateScenarioFile(reader, jsonfilepath, stringtableitems);
+						var buffer = UpdateScenarioFile(game, reader, jsonfilepath, stringtableitems);
 						filesystem.SaveFile(filepath, buffer);
 					}
 				}
@@ -129,377 +130,50 @@ namespace CrossbellTranslationTool.Actions
 
 					using (var reader = filesystem.OpenFile(filepath, encoding))
 					{
-						var buffer = UpdateMonsterFile(reader, jsonfilepath);
+						var buffer = UpdateMonsterFile(game, reader, jsonfilepath);
 						filesystem.SaveFile(filepath, buffer);
 					}
 				}
 			}
 
-			UpdateMonsterNote(filesystem, encoding);
+			UpdateMonsterNote(game, filesystem, encoding);
 		}
 
-		static void UpdateMonsterNote(IO.IFileSystem filesystem, Encoding encoding)
+		static void UpdateMonsterNote(Game game, IO.IFileSystem filesystem, Encoding encoding)
 		{
+			Assert.IsValidEnumeration(game, nameof(game), true);
 			Assert.IsNotNull(filesystem, nameof(filesystem));
 			Assert.IsNotNull(encoding, nameof(encoding));
 
 			Console.WriteLine("monsnote.dt2");
 
-			var filelist = GetMonsterNoteFileList();
-
-			var allbuffers = new List<Byte[]>();
-
-			foreach (var monsterfilenumber in filelist)
+			using (var reader = filesystem.OpenFile(@"data\monsnote\monsnote.dt2", encoding))
 			{
-				var monsterfilepath = Path.Combine(@"data\battle\dat", "ms" + monsterfilenumber + ".dat");
-				using (var monsterreader = filesystem.OpenFile(monsterfilepath, encoding))
+				var monsternote = new MonsterNoteFile(game, reader);
+
+				foreach (var record in monsternote.Records)
 				{
-					var monsterfiledata = monsterreader.ReadBytes((Int32)monsterreader.Length);
+					var filename = Path.Combine(@"data\battle\dat", "ms" + record.Id.Substring(3) + ".dat");
 
-					var buffer = new Byte[8 + monsterreader.Length];
-
-					var foo = "300" + monsterfilenumber;
-					var foobytes = Enumerable.Range(0, 4).Select(i => foo.Substring(i * 2, 2)).Select(str => (Byte)Int32.Parse(str, System.Globalization.NumberStyles.HexNumber)).Reverse().ToArray();
-
-					Array.Copy(foobytes, 0, buffer, 0, 4);
-					BinaryIO.WriteIntoBuffer(buffer, 4, (UInt32)monsterreader.Length);
-					Array.Copy(monsterfiledata, 0, buffer, 8, monsterfiledata.Length);
-
-					allbuffers.Add(buffer);
+					using (var monsterfilereader = filesystem.OpenFile(filename, encoding))
+					{
+						var monsterfile = OpenMonsterDefinitionFile(game, monsterfilereader);
+						record.MonsterDefinitionFile = monsterfile;
+					}
 				}
+
+				var filebuffer = monsternote.Write(encoding);
+				filesystem.SaveFile(@"data\monsnote\monsnote.dt2", filebuffer);
 			}
-
-			allbuffers.Add(new Byte[] { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF });
-
-			var totalsize = allbuffers.Sum(x => x.Length);
-			var filebuffer = new Byte[totalsize];
-
-			var memorystream = new MemoryStream(filebuffer);
-			foreach (var item in allbuffers) memorystream.Write(item, 0, item.Length);
-
-			filesystem.SaveFile(@"data\monsnote\monsnote.dt2", filebuffer);
 		}
 
-		static List<String> GetMonsterNoteFileList()
+		static Byte[] UpdateMonsterFile(Game game, FileReader reader, String jsonpath)
 		{
-			var list = new List<String>()
-			{
-				"02102",
-				"02401",
-				"03300",
-				"03301",
-				"03400",
-				"03401",
-				"03500",
-				"03600",
-				"03700",
-				"03800",
-				"03900",
-				"04200",
-				"24100",
-				"31200",
-				"31300",
-				"32000",
-				"32001",
-				"32100",
-				"32101",
-				"41400",
-				"41401",
-				"41500",
-				"41501",
-				"41900",
-				"41901",
-				"41902",
-				"42000",
-				"42001",
-				"42002",
-				"42100",
-				"42200",
-				"42300",
-				"42500",
-				"43100",
-				"43101",
-				"43200",
-				"43300",
-				"44900",
-				"60500",
-				"60701",
-				"60900",
-				"61000",
-				"61100",
-				"61300",
-				"61400",
-				"61500",
-				"61800",
-				"62001",
-				"62100",
-				"62200",
-				"62300",
-				"62400",
-				"62500",
-				"62600",
-				"62700",
-				"62800",
-				"63000",
-				"63100",
-				"63200",
-				"63300",
-				"63400",
-				"63500",
-				"63600",
-				"63700",
-				"63701",
-				"63800",
-				"63900",
-				"64000",
-				"64100",
-				"64200",
-				"64300",
-				"64400",
-				"64500",
-				"64600",
-				"64900",
-				"65000",
-				"65100",
-				"65200",
-				"65300",
-				"65500",
-				"65600",
-				"65700",
-				"65800",
-				"65900",
-				"66100",
-				"66200",
-				"66300",
-				"66400",
-				"66401",
-				"66402",
-				"66403",
-				"66500",
-				"66600",
-				"66700",
-				"66800",
-				"66801",
-				"66900",
-				"67000",
-				"67200",
-				"67400",
-				"68100",
-				"68500",
-				"68600",
-				"68700",
-				"68800",
-				"68900",
-				"69001",
-				"69100",
-				"69300",
-				"69400",
-				"69500",
-				"69700",
-				"69800",
-				"69900",
-				"70000",
-				"70100",
-				"70200",
-				"70201",
-				"70300",
-				"70400",
-				"70500",
-				"70700",
-				"70800",
-				"71300",
-				"71500",
-				"71600",
-				"71700",
-				"71800",
-				"71801",
-				"71900",
-				"72200",
-				"72201",
-				"72300",
-				"72400",
-				"72401",
-				"72700",
-				"72800",
-				"73000",
-				"73200",
-				"73400",
-				"73500",
-				"73600",
-				"73700",
-				"74000",
-				"74200",
-				"74201",
-				"74300",
-				"74400",
-				"74500",
-				"74600",
-				"74700",
-				"74800",
-				"75100",
-				"75200",
-				"75600",
-				"75800",
-				"75900",
-				"76001",
-				"76100",
-				"76201",
-				"77400",
-				"78000",
-				"78001",
-				"78100",
-				"78200",
-				"78300",
-				"78400",
-				"78500",
-				"78600",
-				"78700",
-				"78800",
-				"78900",
-				"79000",
-				"79100",
-				"79101",
-				"79200",
-				"79300",
-				"79301",
-				"79400",
-				"79500",
-				"79501",
-				"79600",
-				"79700",
-				"79800",
-				"79900",
-				"80000",
-				"80100",
-				"80200",
-				"80300",
-				"80400",
-				"80500",
-				"80600",
-				"80700",
-				"80800",
-				"80801",
-				"80900",
-				"81000",
-				"81001",
-				"81100",
-				"81101",
-				"81200",
-				"81201",
-				"81300",
-				"81400",
-				"81401",
-				"81500",
-				"81600",
-				"81700",
-				"81800",
-				"81900",
-				"82000",
-				"82001",
-				"82002",
-				"82003",
-				"82004",
-				"82100",
-				"82200",
-				"82300",
-				"82400",
-				"82500",
-				"82600",
-				"82700",
-				"82800",
-				"82900",
-				"83000",
-				"83200",
-				"83300",
-				"83400",
-				"83500",
-				"83600",
-				"83700",
-				"83800",
-				"83900",
-				"84000",
-				"84100",
-				"84101",
-				"84200",
-				"84201",
-				"84300",
-				"84301",
-				"84400",
-				"84500",
-				"84600",
-				"84700",
-				"84800",
-				"84900",
-				"85000",
-				"85100",
-				"85101",
-				"85200",
-				"85201",
-				"85202",
-				"85300",
-				"85301",
-				"85400",
-				"85401",
-				"85500",
-				"85501",
-				"85600",
-				"85700",
-				"85800",
-				"85900",
-				"86100",
-				"86101",
-				"86200",
-				"86400",
-				"86500",
-				"86600",
-				"86700",
-				"86800",
-				"86900",
-				"87000",
-				"87100",
-				"87200",
-				"87300",
-				"87400",
-				"87500",
-				"87600",
-				"87700",
-				"87800",
-				"87900",
-				"88000",
-				"88100",
-				"88101",
-				"88200",
-				"88300",
-				"88301",
-				"88400",
-				"88401",
-				"88500",
-				"88600",
-				"88700",
-				"88701",
-				"88702",
-				"88800",
-				"88801",
-				"88802",
-				"88900",
-				"88901",
-				"89000",
-				"89100",
-				"89200",
-				"89300",
-				"89301",
-				"89302"
-			};
-
-			return list;
-		}
-
-		static Byte[] UpdateMonsterFile(FileReader reader, String jsonpath)
-		{
+			Assert.IsNotNull(reader, nameof(reader));
 			Assert.IsNotNull(reader, nameof(reader));
 			Assert.IsValidString(jsonpath, nameof(jsonpath));
 
-			var monsterfile = new MonsterDefinitionFile(reader);
+			var monsterfile = OpenMonsterDefinitionFile(game, reader);
 
 			var json = JsonTextItemFileIO.ReadFromFile(jsonpath);
 			var strings = json.Select(x => x.GetBestText()).ToList();
@@ -509,7 +183,7 @@ namespace CrossbellTranslationTool.Actions
 			return monsterfile.Write(reader.Encoding);
 		}
 
-		static Byte[] UpdateTextFile(FileReader reader, Text.FilePointerDelegate filepointerfunc, String jsonpath)
+		static Byte[] UpdateTextFile(FileReader reader, Text.FilePointerDelegate filepointerfunc, Int32 recordcount, String jsonpath)
 		{
 			Assert.IsNotNull(reader, nameof(reader));
 			Assert.IsNotNull(filepointerfunc, nameof(filepointerfunc));
@@ -518,16 +192,17 @@ namespace CrossbellTranslationTool.Actions
 			var textitems = JsonTextItemFileIO.ReadFromFile(jsonpath);
 			var strings = textitems.Select(x => x.Translation).ToList();
 
-			return Text.TextFileIO.Write(reader, filepointerfunc, strings);
+			return Text.TextFileIO.Write(reader, filepointerfunc, recordcount, strings);
 		}
 
-		static Byte[] UpdateScenarioFile(FileReader reader, String jsonpath, List<TextItem> stringtableitems)
+		static Byte[] UpdateScenarioFile(Game game, FileReader reader, String jsonpath, List<TextItem> stringtableitems)
 		{
+			Assert.IsValidEnumeration(game, nameof(game), true);
 			Assert.IsNotNull(reader, nameof(reader));
 			Assert.IsValidString(jsonpath, nameof(jsonpath));
 			Assert.IsNotNull(stringtableitems, nameof(stringtableitems));
 
-			var scenariofile = new ScenarioFile(reader);
+			var scenariofile = OpenScenarioFile(game, reader);
 			var textitems = JsonTextItemFileIO.ReadFromFile(jsonpath);
 
 			var scenariotext_index = 0;
@@ -548,14 +223,52 @@ namespace CrossbellTranslationTool.Actions
 			return scenariofile.Write(reader.Encoding);
 		}
 
+		static IMonsterDefinitionFile OpenMonsterDefinitionFile(Game game, FileReader reader)
+		{
+			Assert.IsValidEnumeration(game, nameof(game), true);
+			Assert.IsNotNull(reader, nameof(reader));
+
+			switch (game)
+			{
+				case Game.Ao:
+					return new MonsterDefinitionFile_Ao(reader);
+
+				case Game.Zero:
+					return new MonsterDefinitionFile_Zero(reader);
+
+				default:
+					throw new Exception();
+			}
+
+		}
+
+		static ScenarioFile OpenScenarioFile(Game game, FileReader reader)
+		{
+			Assert.IsValidEnumeration(game, nameof(game), true);
+			Assert.IsNotNull(reader, nameof(reader));
+
+			switch (game)
+			{
+				case Game.Ao:
+					return new ScenarioFile(reader, typeof(Bytecode.InstructionTable_AoKScena));
+
+				case Game.Zero:
+					return new ScenarioFile(reader, typeof(Bytecode.InstructionTalble_ZoKScena));
+
+				default:
+					throw new Exception();
+			}
+		}
+
 		#region PSP ISO Methods
 
-		static void FixFileReferences(Iso9660.IsoImage iso, IO.IFileSystem filesystem)
+		static void FixFileReferences(Game game, Iso9660.IsoImage iso, IO.IFileSystem filesystem)
 		{
+			Assert.IsValidEnumeration(game, nameof(game), true);
 			Assert.IsNotNull(iso, nameof(iso));
 			Assert.IsNotNull(filesystem, nameof(filesystem));
 
-			var data_text = Text.TextFileDescription.GetTextFileData();
+			var data_text = Text.TextFileDescription.GetTextFileData(game);
 
 			foreach (var item in data_text)
 			{

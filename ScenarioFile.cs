@@ -8,10 +8,12 @@ namespace CrossbellTranslationTool
 {
 	class ScenarioFile
 	{
-		public ScenarioFile(FileReader reader)
+		public ScenarioFile(FileReader reader, Type instructiontabletype)
 		{
 			Assert.IsNotNull(reader, nameof(reader));
+			Assert.IsNotNull(instructiontabletype, nameof(instructiontabletype));
 
+			InstructionTableType = instructiontabletype;
 			FileMap = new SortedDictionary<UInt32, Object>();
 
 			var header = Interop.ReadStructFromStream<FileHeaders.SCENARIO_HEADER>(reader.Stream);
@@ -215,13 +217,32 @@ namespace CrossbellTranslationTool
 			}
 		}
 
-		public IEnumerable<Bytecode.Instruction> WalkInstructions()
+		List<List<Bytecode.Instruction>> GetAllInstructions()
+		{
+			var functionoffsets = FileMap.Values.OfType<List<UInt32>>().First();
+
+			var output = new List<List<Bytecode.Instruction>>();
+
+			for (var i = 0; i != functionoffsets.Count; ++i)
+			{
+				var startoffset = functionoffsets[i];
+				var endoffset = (i + 1 < functionoffsets.Count) ? functionoffsets[i + 1] : Int32.MaxValue;
+
+				var instructions = WalkInstructions((Int32)startoffset, (Int32)endoffset).ToList();
+
+				output.Add(instructions);
+			}
+
+			return output;
+		}
+
+		IEnumerable<Bytecode.Instruction> WalkInstructions(Int32 startoffset, Int32 endoffset)
 		{
 			var instructionlist = new List<Bytecode.Instruction>();
 
-			foreach (var item in FileMap.Values)
+			foreach (var item in FileMap.Where(x => x.Key >= startoffset && x.Key < endoffset))
 			{
-				if (item is Bytecode.Instruction instruction)
+				if (item.Value is Bytecode.Instruction instruction)
 				{
 					yield return instruction;
 
@@ -283,6 +304,38 @@ namespace CrossbellTranslationTool
 					foreach (var operation in operand.GetValue<Bytecode.Expression>().Operations)
 					{
 						VisitOperands(operation, x => x.Operands, filter, callback);
+					}
+				}
+			}
+		}
+
+		public List<List<String>> GetFunctionStrings()
+		{
+			var instructions = GetAllInstructions();
+
+			var output = instructions.Select(list => list.Select(instruction => instruction.Operands.Where(operand => operand.Type == Bytecode.OperandType.String)).SelectMany(x => x).Select(x => x.GetValue<String>()).ToList()).ToList();
+
+			return output;
+		}
+
+		public void SetFunctionStrings(List<List<String>> values)
+		{
+			Assert.IsNotNull(values, nameof(values));
+
+			var instructions = GetAllInstructions();
+
+			foreach (var item in Enumerable.Zip(instructions, values, (x, y) => new { Instructions = x, Strings = y }))
+			{
+				var stringindex = 0;
+
+				foreach (var instruction in item.Instructions)
+				{
+					for (var i = 0; i != instruction.Operands.Count; ++i)
+					{
+						if (instruction.Operands[i].Type == Bytecode.OperandType.String)
+						{
+							instruction.Operands[i] = new Bytecode.Operand(Bytecode.OperandType.String, item.Strings[stringindex++]);
+						}
 					}
 				}
 			}
@@ -377,7 +430,7 @@ namespace CrossbellTranslationTool
 		IDictionary<UInt32, Bytecode.Instruction> ReadFunctions(FileReader reader, List<UInt32> functionoffsets)
 		{
 			var instructionmap = new SortedDictionary<UInt32, Bytecode.Instruction>();
-			var disassembler = new Bytecode.Disassembler(typeof(Bytecode.InstructionTable_AoKScena));
+			var disassembler = new Bytecode.Disassembler(InstructionTableType);
 
 			foreach (var offset in functionoffsets)
 			{
@@ -603,5 +656,7 @@ namespace CrossbellTranslationTool
 		#endregion
 
 		public SortedDictionary<UInt32, Object> FileMap { get; }
+
+		Type InstructionTableType { get; }
 	}
 }

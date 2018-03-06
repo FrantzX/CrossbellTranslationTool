@@ -69,6 +69,12 @@ namespace CrossbellTranslationTool.Bytecode
 			{
 				if (reference_offset == 0) continue;
 
+				//hack for bad jump in ZoK ENG c011b.bin
+				if (reader.Length == 104091 && reference_offset == 92452) continue;
+
+				//hack for bad jump in ZoK ENG m3033.bin
+				if (reader.Length == 5191 && reference_offset == 4961) continue;
+
 				reader.Position = reference_offset;
 				Disassemble(reader, instructionmap);
 			}

@@ -12,7 +12,7 @@ namespace CrossbellTranslationTool
 			Assert.IsNotNull(encoding, nameof(encoding));
 
 			Stream = new MemoryStream(buffer);
-			Buffer = new Byte[4];
+			Buffer = new Byte[256];
 			StringBuilder = new StringBuilder(256);
 			Encoding = encoding;
 		}
@@ -132,7 +132,7 @@ namespace CrossbellTranslationTool
 			while (true)
 			{
 				var bytesread = Stream.Read(Buffer, 0, Buffer.Length);
-				if (bytesread == 0) throw new Exception();
+				if (bytesread == 0) throw new EndOfStreamException();
 
 				for (var i = 0; i < bytesread; ++i)
 				{

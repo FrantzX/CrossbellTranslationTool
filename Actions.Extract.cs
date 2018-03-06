@@ -25,7 +25,7 @@ namespace CrossbellTranslationTool.Actions
 				{
 					var filesystem = new IO.IsoFileSystem(iso, @"PSP_GAME\USRDIR");
 
-					Run(filesystem, Encodings.ShiftJIS, args.TranslationPath);
+					Run(args.Game, filesystem, Encodings.ShiftJIS, args.TranslationPath);
 				}
 			}
 
@@ -38,7 +38,7 @@ namespace CrossbellTranslationTool.Actions
 
 				var filesystem = new IO.DirectoryFileSystem(args.GamePath);
 
-				Run(filesystem, Encodings.Chinese, args.TranslationPath);
+				Run(args.Game, filesystem, Encodings.Chinese, args.TranslationPath);
 			}
 		}
 
@@ -46,7 +46,7 @@ namespace CrossbellTranslationTool.Actions
 		{
 			Assert.IsNotNull(args, nameof(args));
 
-			if (args.Game != Game.Ao) return false;
+			if (args.Game == Game.None) return false;
 			if (args.Format == GameFormat.None) return false;
 			if (args.Format == GameFormat.PSP && args.SourceIsoPath == "") return false;
 			if (args.Format == GameFormat.PC && args.GamePath == "") return false;
@@ -54,13 +54,14 @@ namespace CrossbellTranslationTool.Actions
 			return true;
 		}
 
-		public static void Run(IO.IFileSystem filesystem, Encoding encoding, String datapath)
+		static void Run(Game game, IO.IFileSystem filesystem, Encoding encoding, String datapath)
 		{
+			Assert.IsValidEnumeration(game, nameof(game), true);
 			Assert.IsNotNull(filesystem, nameof(filesystem));
 			Assert.IsNotNull(encoding, nameof(encoding));
 			Assert.IsValidString(datapath, nameof(datapath));
 
-			var data_text = Text.TextFileDescription.GetTextFileData();
+			var data_text = Text.TextFileDescription.GetTextFileData(game);
 
 			var totalscenastringtable = new SortedSet<String>();
 
@@ -78,7 +79,7 @@ namespace CrossbellTranslationTool.Actions
 
 				using (var reader = filesystem.OpenFile(textfilepath, encoding))
 				{
-					var strings = Text.TextFileIO.Read(reader, item.FilePointerDelegate);
+					var strings = Text.TextFileIO.Read(reader, item.FilePointerDelegate, item.RecordCount);
 					JsonTextItemFileIO.WriteToFile(strings.Select(x => new TextItem(x)).ToList(), jsonfilepath);
 				}
 			}
@@ -93,7 +94,7 @@ namespace CrossbellTranslationTool.Actions
 
 				using (var reader = filesystem.OpenFile(filepath, encoding))
 				{
-					var strings = ReadScenarioFile(reader);
+					var strings = ReadScenarioFile(game, reader);
 
 					JsonTextItemFileIO.WriteToFile(strings.Item1.Select(x => new TextItem(x)).ToList(), jsonfilepath);
 
@@ -112,7 +113,7 @@ namespace CrossbellTranslationTool.Actions
 
 				using (var reader = filesystem.OpenFile(filepath, encoding))
 				{
-					var monsterfile = new MonsterDefinitionFile(reader);
+					var monsterfile = OpenMonsterDefinitionFile(game, reader);
 					var strings = monsterfile.GetStrings();
 
 					JsonTextItemFileIO.WriteToFile(strings.Select(x => new TextItem(x)).ToList(), jsonfilepath);
@@ -123,11 +124,12 @@ namespace CrossbellTranslationTool.Actions
 			Console.WriteLine("Done.");
 		}
 
-		static Tuple<List<String>, List<String>> ReadScenarioFile(FileReader reader)
+		static Tuple<List<String>, List<String>> ReadScenarioFile(Game game, FileReader reader)
 		{
+			Assert.IsValidEnumeration(game, nameof(game), true);
 			Assert.IsNotNull(reader, nameof(reader));
 
-			var scenariofile = new ScenarioFile(reader);
+			var scenariofile = OpenScenarioFile(game, reader);
 
 			var stringlist = new List<String>();
 			scenariofile.VisitOperands(x => x.Type == Bytecode.OperandType.String, x => stringlist.Add(x.GetValue<String>()));
@@ -135,6 +137,43 @@ namespace CrossbellTranslationTool.Actions
 			var stringtable = scenariofile.GetStringTable();
 
 			return Tuple.Create(stringlist, stringtable);
+		}
+
+		static IMonsterDefinitionFile OpenMonsterDefinitionFile(Game game, FileReader reader)
+		{
+			Assert.IsValidEnumeration(game, nameof(game), true);
+			Assert.IsNotNull(reader, nameof(reader));
+
+			switch (game)
+			{
+				case Game.Ao:
+					return new MonsterDefinitionFile_Ao(reader);
+
+				case Game.Zero:
+					return new MonsterDefinitionFile_Zero(reader);
+
+				default:
+					throw new Exception();
+			}
+
+		}
+
+		static ScenarioFile OpenScenarioFile(Game game, FileReader reader)
+		{
+			Assert.IsValidEnumeration(game, nameof(game), true);
+			Assert.IsNotNull(reader, nameof(reader));
+
+			switch (game)
+			{
+				case Game.Ao:
+					return new ScenarioFile(reader, typeof(Bytecode.InstructionTable_AoKScena));
+
+				case Game.Zero:
+					return new ScenarioFile(reader, typeof(Bytecode.InstructionTalble_ZoKScena));
+
+				default:
+					throw new Exception();
+			}
 		}
 	}
 }

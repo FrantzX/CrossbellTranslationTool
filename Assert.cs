@@ -70,7 +70,7 @@ namespace CrossbellTranslationTool
 		}
 
 		/// <summary>
-		/// Validation methos that throws an exception is the given boolean value is false.
+		/// Validation method that throws an exception if the given boolean value is false.
 		/// </summary>
 		/// <param name="value">The boolean value to be validated.</param>
 		/// <param name="errortext">The text to be used in the exception.</param>
@@ -78,6 +78,17 @@ namespace CrossbellTranslationTool
 		public static void IsTrue(Boolean value, String errortext)
 		{
 			if (value == false) throw new Exception(errortext);
+		}
+
+		/// <summary>
+		/// Validation method that throws an exception if the given integer value is less than zero.
+		/// </summary>
+		/// <param name="value">The integer value to be validated.</param>
+		/// <param name="name">The name of the value.</param>
+		[DebuggerStepThrough]
+		public static void Int32NotNegative(Int32 value, String name)
+		{
+			if (value < 0) throw new ArgumentOutOfRangeException(name ?? "Unknown Integer", $"Value ({value}) must not be negative.");
 		}
 
 		/// <summary>

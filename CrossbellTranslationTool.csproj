@@ -69,6 +69,7 @@
     <Compile Include="Game.cs" />
     <Compile Include="GameFormat.cs" />
     <Compile Include="HashCode.cs" />
+    <Compile Include="Bytecode.InstructionTable_ZoKScena.cs" />
     <Compile Include="Interop.cs" />
     <Compile Include="IO.DirectoryFileSystem.cs" />
     <Compile Include="IO.IFileSystem.cs" />
@@ -90,6 +91,7 @@
     <Compile Include="LinqUtil.cs" />
     <Compile Include="MathUtil.cs" />
     <Compile Include="MonsterDefinitionFile.cs" />
+    <Compile Include="MonsterNoteFile.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="AssemblyInfo.cs" />
     <Compile Include="ScenarioFile.cs" />

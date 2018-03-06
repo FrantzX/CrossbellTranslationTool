@@ -281,6 +281,41 @@ namespace CrossbellTranslationTool.Iso9660
 				return descriptor;
 			}
 
+			if(type == VolumeDescriptorType.Supplementary)
+			{
+				var descriptor = new BasicVolumeDescriptor();
+				descriptor.VolumeDescriptorType = type;
+				descriptor.StandardIdentifier = Encodings.ASCII.GetString(buffer, 1, 5);
+				descriptor.VolumeDescriptorVersion = buffer[6];
+
+				descriptor.SystemIdentifier = Encodings.ASCII.GetString(buffer, 8, 32).Trim(' ');
+				descriptor.VolumeIdentifier = Encodings.ASCII.GetString(buffer, 40, 32).Trim(' ');
+				descriptor.VolumeSpaceSize = BinaryIO.ReadUInt32FromBuffer(buffer, 80, Endian.LittleEndian);
+				descriptor.VolumeSetSize = BinaryIO.ReadUInt16FromBuffer(buffer, 120, Endian.LittleEndian);
+				descriptor.VolumeSequenceNumber = BinaryIO.ReadUInt16FromBuffer(buffer, 124, Endian.LittleEndian);
+				descriptor.LogicalBlockSize = BinaryIO.ReadUInt16FromBuffer(buffer, 128, Endian.LittleEndian);
+				descriptor.PathTableSize = BinaryIO.ReadUInt32FromBuffer(buffer, 132, Endian.LittleEndian);
+				descriptor.TypeLPathTableLocation = BinaryIO.ReadUInt32FromBuffer(buffer, 140, Endian.LittleEndian);
+				descriptor.OptionalTypeLPathTableLocation = BinaryIO.ReadUInt32FromBuffer(buffer, 144, Endian.LittleEndian);
+				descriptor.TypeMPathTableLocation = BinaryIO.ReadUInt32FromBuffer(buffer, 148, Endian.BigEndian);
+				descriptor.OptionalTypeMPathTableLocation = BinaryIO.ReadUInt32FromBuffer(buffer, 152, Endian.BigEndian);
+				descriptor.RootDirectory = ReadDirectoryRecord(buffer, 156);
+				descriptor.VolumeSetIdentifier = Encodings.ASCII.GetString(buffer, 190, 128).Trim(' ');
+				descriptor.PublisherIdentifier = Encodings.ASCII.GetString(buffer, 318, 128).Trim(' ');
+				descriptor.DataPreparerIdentifier = Encodings.ASCII.GetString(buffer, 446, 128).Trim(' ');
+				descriptor.ApplicationIdentifier = Encodings.ASCII.GetString(buffer, 574, 128).Trim(' ');
+				descriptor.CopyrightFileIdentifier = Encodings.ASCII.GetString(buffer, 702, 37).Trim(' ');
+				descriptor.AbstractFileIdentifier = Encodings.ASCII.GetString(buffer, 739, 37).Trim(' ');
+				descriptor.BibliographicFileIdentifier = Encodings.ASCII.GetString(buffer, 776, 37).Trim(' ');
+				descriptor.CreationDateAndTime = ReadVolumeDescriptorDateTime(buffer, 813);
+				descriptor.ModificationDateAndTime = ReadVolumeDescriptorDateTime(buffer, 830);
+				descriptor.ExpirationDateAndTime = ReadVolumeDescriptorDateTime(buffer, 847);
+				descriptor.EffectiveDateAndTime = ReadVolumeDescriptorDateTime(buffer, 864);
+				descriptor.FileStructureVersion = buffer[881];
+
+				return descriptor;
+			}
+
 			if (type == VolumeDescriptorType.SetTerminator)
 			{
 				var descriptor = new SetTerminatorVolumeDescriptor();
